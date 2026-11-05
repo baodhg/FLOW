@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { renderBanner } from './lib/banner.mjs';
 
 const HOME_DIR = path.dirname(fileURLToPath(import.meta.url));
 const USER = os.homedir();
@@ -189,6 +190,8 @@ function skills() {
 function linkSkills() {
   for (const t of SKILL_TARGETS) {
     if (!DRY) fs.mkdirSync(t.dir, { recursive: true });
+    let unchanged = 0;
+    let changed = 0;
     for (const s of skills()) {
       const dst = path.join(t.dir, s.name);
       const st = lstat(dst);
@@ -197,12 +200,12 @@ function linkSkills() {
       if (UNINSTALL) {
         if (current || stale) {
           if (!DRY) fs.rmSync(dst, { recursive: false, force: true });
-          log(`  − ${t.label}: ${s.name}`);
+          changed++;
         }
         continue;
       }
       if (current) {
-        log(`  = ${t.label}: ${s.name}`);
+        unchanged++;
         continue;
       }
       if (st && !stale) {
@@ -211,8 +214,10 @@ function linkSkills() {
       }
       if (stale && !DRY) fs.rmSync(dst, { recursive: false, force: true });
       if (!DRY) fs.symlinkSync(s.src, dst, 'junction');
-      log(`  + ${t.label}: ${s.name} → ${s.src}`);
+      changed++;
     }
+    if (UNINSTALL) log(`  − ${t.label}: gỡ ${changed} skill`);
+    else log(`  ✓ ${t.label}: nối mới ${changed} · giữ nguyên ${unchanged} skill`);
   }
 }
 
@@ -294,7 +299,10 @@ function bridges() {
   }
 }
 
-log(`agent-flow ${UNINSTALL ? 'gỡ cài đặt' : 'cài đặt'} từ ${HOME_DIR}${DRY ? ' (dry-run)' : ''}`);
+const { version: VERSION } = JSON.parse(fs.readFileSync(path.join(HOME_DIR, 'package.json'), 'utf8'));
+const banner = UNINSTALL ? '' : renderBanner({ version: VERSION, isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
+if (banner) log(banner);
+log(`${UNINSTALL ? 'Gỡ cài đặt' : 'Cài đặt'} từ ${HOME_DIR}${DRY ? ' (dry-run)' : ''}`);
 log('Skill:');
 linkSkills();
 log('Lệnh flowctl:');
