@@ -1,0 +1,27 @@
+[
+  {
+    "file": "lib/hygiene.mjs",
+    "match": "-- \\\\+goose",
+    "reason": "Syntax of public tools that a comment scanner must recognise; the names are fixed by those tools."
+  },
+  {
+    "file": "lib/hygiene.mjs",
+    "match": "eslint-disable",
+    "reason": "Syntax of public tools that a comment scanner must recognise; the names are fixed by those tools."
+  },
+  {
+    "file": "lib/util.mjs",
+    "match": ".normalize('NFD')",
+    "reason": "Standard way to build a URL slug in JavaScript: strip diacritics, lowercase, replace non-alphanumerics."
+  },
+  {
+    "file": "bin/flowctl.mjs",
+    "match": "const a = argv[i];",
+    "reason": "Standard hand-written argv loop with no expressive choice beyond the Node API."
+  },
+  {
+    "file": "lib/secretscmd.mjs",
+    "match": "e.isDirectory()",
+    "reason": "Standard recursive directory walk using the Node fs API."
+  }
+]
