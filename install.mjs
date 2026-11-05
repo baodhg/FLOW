@@ -311,5 +311,5 @@ if (!UNINSTALL) {
   log('');
   log('Xong. Mở phiên CLI mới để thấy skill (Gemini: /skills reload). Kiểm: `flowctl help`.');
   if (!HOOKS) log('Hook chưa cài. Tự chạy: flowctl install --hooks (SessionStart nạp lại trạng thái sau nén · PreToolUse chặn ghi nhánh được bảo vệ, cho Claude Code + Codex).');
-  if (VIA_PACKAGE_MANAGER) log('Trước khi gỡ gói: chạy flowctl uninstall, rồi npm uninstall -g agent-flow.');
+  if (VIA_PACKAGE_MANAGER) log('Trước khi gỡ gói: chạy flowctl uninstall, rồi npm uninstall -g @baodhg/agent-flow.');
 }
