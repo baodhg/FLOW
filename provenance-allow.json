@@ -23,5 +23,15 @@
     "file": "lib/secretscmd.mjs",
     "match": "e.isDirectory()",
     "reason": "Standard recursive directory walk using the Node fs API."
+  },
+  {
+    "file": ".github/workflows/publish.yml",
+    "match": "actions/checkout@v4",
+    "reason": "Standard GitHub Actions job header documented by GitHub."
+  },
+  {
+    "file": "package.json",
+    "match": "\"license\": \"MIT\"",
+    "reason": "Standard package.json metadata fields whose format is fixed by npm."
   }
 ]
