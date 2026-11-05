@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { renderBanner } from '../lib/banner.mjs';
 import { cmdProvenance } from '../lib/provenance.mjs';
 import {
   HOME,
@@ -53,6 +55,7 @@ Tri thức
   sync [--mark]                 module nào cần cập nhật ngữ cảnh kể từ mốc đồng bộ
 
 Cài đặt
+  version                                   in phiên bản (cũng nhận --version, -v)
   install [--hooks] [--no-bridge] [--dry]   nối skill vào các agent CLI, chèn khối chỉ dẫn, cài hook nếu chọn
   uninstall [--dry]                         gỡ mọi thứ install đã thêm (chạy trước npm uninstall)
 
@@ -125,6 +128,10 @@ function normalize(opts) {
   return opts;
 }
 
+function packageVersion() {
+  return JSON.parse(readFileSync(path.join(HOME, 'package.json'), 'utf8')).version;
+}
+
 async function main() {
   const [cmd, ...rest] = process.argv.slice(2);
   const cwd = process.cwd();
@@ -194,12 +201,20 @@ async function main() {
       return cmdDup(cwd, sub, opts);
     case 'hook':
       return cmdHook(cwd, sub);
+    case 'version':
+    case '--version':
+    case '-v':
+      console.log(packageVersion());
+      return 0;
     case 'help':
     case '--help':
     case '-h':
-    case undefined:
+    case undefined: {
+      const banner = renderBanner({ version: packageVersion(), isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
+      if (banner) console.log(banner);
       console.log(HELP);
       return 0;
+    }
     default:
       console.log(`Lệnh lạ: ${cmd}\n`);
       console.log(HELP);

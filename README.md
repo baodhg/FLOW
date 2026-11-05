@@ -125,3 +125,11 @@ Mọi thay đổi vào bộ skill phải qua cả ba. `selftest` kiểm chuẩn 
 ## Giấy phép
 
 MIT, xem tệp `LICENSE`.
+
+Các đóng góp theo `CONTRIBUTING.md`, báo lỗ hổng theo `SECURITY.md`, lịch sử phiên bản ở `CHANGELOG.md`.
+
+## Nhãn hiệu và phần mềm bên thứ ba
+
+Đây là dự án độc lập, không liên kết, không được bảo trợ hay xác nhận bởi Anthropic, OpenAI hay Google. Claude và Claude Code là nhãn hiệu của Anthropic, Codex là nhãn hiệu của OpenAI, Gemini là nhãn hiệu của Google; các tên này chỉ được dùng để nói công cụ tương thích với sản phẩm nào.
+
+Gói không có phụ thuộc npm. `gitleaks` là công cụ tuỳ chọn, không đóng gói kèm: có trên máy thì `flowctl secrets scan` gọi thêm, không có thì bỏ qua lớp đó.
