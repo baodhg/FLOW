@@ -22,7 +22,7 @@ Bước `npm install` chỉ đặt gói lên máy và không đụng tới cấu
 
 Nâng cấp: chạy lại `npm install -g github:baodhg/FLOW` rồi `flowctl install`.
 
-Gỡ: chạy `flowctl uninstall` trước, rồi `npm uninstall -g agent-flow`. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
+Gỡ: chạy `flowctl uninstall` trước, rồi `npm uninstall -g @baodhg/agent-flow`. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
 
 Chạy từ bản clone: `node install.mjs` nhận cùng các cờ, thêm `--uninstall`.
 
@@ -121,3 +121,7 @@ flowctl provenance --against <dự án>
 ```
 
 Mọi thay đổi vào bộ skill phải qua cả ba. `selftest` kiểm chuẩn của skill, khuôn và gate. `provenance` kiểm nội dung không mang gì từ dự án được đối chiếu.
+
+## Giấy phép
+
+MIT, xem tệp `LICENSE`.
