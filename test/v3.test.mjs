@@ -92,7 +92,7 @@ test('worktree carries local context, finds the main .flow, never deletes throug
     assert.equal(created.status, 0, created.stdout + created.stderr);
     const wt = path.join(root, 'app-worktrees', 'app-one');
     assert.ok(fs.existsSync(path.join(wt, 'src', 'pay', 'CONTEXT.md')), 'context copied into worktree');
-    assert.match(run(wt, 'where').stdout, new RegExp(`Flow root : ${dir.replace(/[\\]/g, '\\\\')}`));
+    assert.match(run(wt, 'where').stdout, new RegExp(`Flow root : ${fs.realpathSync.native(dir).replace(/[\\]/g, '\\\\')}`));
     fs.symlinkSync(shared, path.join(wt, 'node_modules'), 'junction');
     fs.appendFileSync(path.join(wt, 'src', 'pay', 'CONTEXT.md'), '\nworktree note\n');
     const done = run(dir, 'wt', 'done', 'one');

@@ -62,6 +62,18 @@ test('a link left dangling by removing the package is repaired', (t) => {
   assert.ok(fs.existsSync(path.join(skillsDir, 'flow', 'SKILL.md')));
 });
 
+test('init works when the repo is reached through a linked or aliased path', (t) => {
+  const home = fakeHome(t);
+  const repo = path.join(home, 'real-repo');
+  fs.mkdirSync(repo);
+  spawnSync('git', ['init', '-q'], { cwd: repo });
+  const alias = path.join(home, 'alias-repo');
+  fs.symlinkSync(repo, alias, 'junction');
+  const run = spawnSync(process.execPath, [CLI, 'init', '--name', 'demo'], { cwd: alias, encoding: 'utf8', env: { ...process.env, HOME: home, USERPROFILE: home } });
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  assert.ok(fs.existsSync(path.join(repo, '.flow', 'profile.json')));
+});
+
 test('the bridge block from an older header is replaced, not duplicated', (t) => {
   const home = fakeHome(t);
   const file = path.join(home, '.claude', 'CLAUDE.md');

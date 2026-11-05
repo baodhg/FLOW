@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { renderBanner } from '../lib/banner.mjs';
 import { cmdProvenance } from '../lib/provenance.mjs';
+import { realDir } from '../lib/util.mjs';
 import {
   HOME,
   cmdCheck,
@@ -134,7 +135,7 @@ function packageVersion() {
 
 async function main() {
   const [cmd, ...rest] = process.argv.slice(2);
-  const cwd = process.cwd();
+  const cwd = realDir(process.cwd());
   const takesSub = new Set(['rules', 'memory', 'plan', 'context', 'hook', 'dup', 'task', 'runbook', 'wt', 'onboard', 'user', 'secrets']);
   let sub;
   let args = rest;
