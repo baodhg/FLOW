@@ -32,4 +32,10 @@ Sửa lỗi thì thêm test thất bại trước khi sửa. Không nới công 
 - Mã: định danh tiếng Anh, không chú thích, không thêm phụ thuộc ngoài.
 - Commit: Conventional Commits, tiêu đề tiếng Anh.
 - Tài liệu skill: tiếng Việt có dấu.
-- Thay đổi người dùng thấy được thì ghi vào mục `[Chưa phát hành]` của `CHANGELOG.md`.
+- Tiêu đề commit tạo nên `CHANGELOG.md`, nên viết để người dùng đọc hiểu. Không sửa tay số phiên bản hay các mục do release-please sinh.
+
+## Phát hành
+
+release-please đọc các commit trên `main` và mở một PR phát hành gồm số phiên bản và `CHANGELOG.md`. Merge PR đó thì CI tạo tag, bản phát hành trên GitHub và đăng lên npm kèm provenance qua trusted publishing. Không cần token npm và không đăng tay.
+
+PR do release-please mở không tự chạy CI vì GitHub không kích hoạt workflow từ token mặc định. Nếu cần kiểm tra, đóng rồi mở lại PR đó. Bước đăng gói luôn chạy lại toàn bộ test trước khi đăng.
