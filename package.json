@@ -1,16 +1,46 @@
 {
-  "name": "flowharness",
-  "version": "0.1.1",
+  "name": "flow-harness",
+  "version": "0.2.0",
   "description": "FLOW Harness: a workflow skill pack and CLI that take coding agents from explore through plan and execute to post, with each repo's context kept local.",
   "license": "MIT",
   "author": "baodhg",
-  "repository": { "type": "git", "url": "git+https://github.com/baodhg/FLOW.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baodhg/FLOW.git"
+  },
   "homepage": "https://github.com/baodhg/FLOW#readme",
-  "bugs": { "url": "https://github.com/baodhg/FLOW/issues" },
-  "keywords": ["flow-harness", "agent-skills", "claude-code", "codex", "gemini-cli", "workflow", "cli"],
+  "bugs": {
+    "url": "https://github.com/baodhg/FLOW/issues"
+  },
+  "keywords": [
+    "agent-skills",
+    "claude-code",
+    "codex",
+    "gemini-cli",
+    "workflow",
+    "cli"
+  ],
   "type": "module",
-  "bin": { "flow": "bin/flow.mjs" },
-  "files": ["bin", "lib", "skills", "templates", "presets", "install.mjs", "provenance-allow.json", "README.md", "CHANGELOG.md", "SECURITY.md"],
-  "scripts": { "test": "node --test test/core.test.mjs test/v2.test.mjs test/v3.test.mjs test/v4.test.mjs test/v5.test.mjs test/provenance.test.mjs test/install.test.mjs test/banner.test.mjs test/leaks.test.mjs" },
-  "engines": { "node": ">=20" }
+  "bin": {
+    "flow": "bin/flow.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "skills",
+    "templates",
+    "presets",
+    "install.mjs",
+    "provenance-allow.json",
+    "README.md",
+    "README.vi.md",
+    "CHANGELOG.md",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "test": "node --test test/core.test.mjs test/v2.test.mjs test/v3.test.mjs test/v4.test.mjs test/v5.test.mjs test/provenance.test.mjs test/install.test.mjs test/banner.test.mjs test/leaks.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
 }
