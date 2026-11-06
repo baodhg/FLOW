@@ -4,6 +4,12 @@ Theo định dạng [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) và
 
 ## [Chưa phát hành]
 
+## [0.1.1] - 2026-11-06
+
+### Sửa
+
+- README trên npm hướng dẫn cài bằng `npm install -g flowharness`, thêm phần bắt đầu dùng, nâng cấp và gỡ.
+
 ## [0.1.0] - 2026-11-06
 
 Bản phát hành đầu tiên.
