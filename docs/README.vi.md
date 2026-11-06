@@ -1,10 +1,10 @@
 # FLOW Harness
 
-[English](README.md) · Tiếng Việt
+[English](../README.md) · Tiếng Việt
 
 [![npm](https://img.shields.io/npm/v/flow-harness)](https://www.npmjs.com/package/flow-harness)
 [![CI](https://github.com/baodhg/FLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/baodhg/FLOW/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/npm/l/flow-harness)](LICENSE)
+[![License: MIT](https://img.shields.io/npm/l/flow-harness)](../LICENSE)
 
 FLOW Harness, gọi tắt FLOW, là bộ skill quy trình cho coding agent, kèm công cụ dòng lệnh `flow`. Bộ này đưa agent đi qua điều tra, kế hoạch, thi hành, đóng việc, và giữ kiến thức của từng dự án ngay trong dự án đó.
 
@@ -22,7 +22,7 @@ Dùng được với Claude Code, Codex và Gemini CLI. Cần Node.js 20 trở l
 - **Không đổi gì mà bạn không thấy.** Trình hướng dẫn liệt kê mọi thay đổi trước khi áp dụng, và `flow install --dry` xem trước phần việc tương tự.
 - **Dễ thử, dễ gỡ.** `flow install --scope project` chỉ tác động lên một repo và không vào git; `flow uninstall --scope project` gỡ sạch.
 
-Xem [SECURITY.md](SECURITY.md) để biết công cụ đụng tới những gì và giới hạn của nó.
+Xem [SECURITY.md](../SECURITY.md) để biết công cụ đụng tới những gì và giới hạn của nó.
 
 ## Cài đặt
 
