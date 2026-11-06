@@ -1,0 +1,44 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Include what you expected instead. Do not paste secrets, tokens or personal data.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. flow init
+        2. flow check --staged
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: FLOW Harness version
+      description: Output of `flow --version`
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options:
+        - Claude Code
+        - Codex
+        - Gemini CLI
+        - Not agent related
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system and Node.js version
+    validations:
+      required: true

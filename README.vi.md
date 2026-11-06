@@ -4,6 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/flow-harness)](https://www.npmjs.com/package/flow-harness)
 [![CI](https://github.com/baodhg/FLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/baodhg/FLOW/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/baodhg/FLOW/badge)](https://scorecard.dev/viewer/?uri=github.com/baodhg/FLOW)
 [![License: MIT](https://img.shields.io/npm/l/flow-harness)](LICENSE)
 
 FLOW Harness, gọi tắt FLOW, là bộ skill quy trình cho coding agent, kèm công cụ dòng lệnh `flow`. Bộ này đưa agent đi qua điều tra, kế hoạch, thi hành, đóng việc, và giữ kiến thức của từng dự án ngay trong dự án đó.
