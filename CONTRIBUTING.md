@@ -14,15 +14,15 @@ Bộ skill chỉ chứa nguyên lý đã khái quát. Không đưa vào:
 Ví dụ minh hoạ dùng miền hư cấu "thư viện cho mượn sách". Trước khi gửi, đối chiếu với các dự án bạn đang làm:
 
 ```
-flowctl provenance --against <thư mục dự án>
+flow provenance --against <thư mục dự án>
 ```
 
 ## Chạy kiểm tra
 
 ```
 npm test
-node bin/flowctl.mjs selftest
-node bin/flowctl.mjs secrets scan --path .
+node bin/flow.mjs selftest
+node bin/flow.mjs secrets scan --path .
 ```
 
 Sửa lỗi thì thêm test thất bại trước khi sửa. Không nới công cụ kiểm tra để cho qua.

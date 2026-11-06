@@ -10,7 +10,7 @@ import { parseFrontmatter, stringifyFrontmatter, updateFrontmatter } from '../li
 import { checkCommitMessage, detectComment } from '../lib/hygiene.mjs';
 import { globToRegExp, matchAny, slugify } from '../lib/util.mjs';
 
-const CLI = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'bin', 'flowctl.mjs');
+const CLI = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'bin', 'flow.mjs');
 
 test('glob matching', () => {
   assert.ok(matchAny(['src/modules/billing/**'], 'src/modules/billing/a/b.ts'));

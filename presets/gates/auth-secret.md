@@ -22,5 +22,5 @@ tags: [auth, secret, critical]
 
 - [ ] Chạy ca âm: không token, token hết hạn, sai chữ ký, sai quyền
 - [ ] Chạy ca âm trước ca dương để biết phép đo phân biệt được
-- [ ] Chạy `flowctl secrets scan --base <nhánh gốc>`
+- [ ] Chạy `flow secrets scan --base <nhánh gốc>`
 - [ ] Cập nhật `.flow/contracts.md` khi đổi claim hay tên quyền

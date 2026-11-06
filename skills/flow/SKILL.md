@@ -7,11 +7,11 @@ description: Dùng khi sắp làm bất kỳ việc gì liên quan đến mã tr
 
 ## Định vị
 
-Chạy `flowctl where`. Sau đó:
+Chạy `flow where`. Sau đó:
 
 - Có `.flow/`: đọc theo thứ tự dưới.
-- Không có `.flow/`: làm theo quy ước sẵn có của repo, không tự khởi tạo. `flowctl fingerprint` đọc được repo bất kỳ và không ghi gì. Người dùng muốn đưa dự án vào quy trình thì dùng skill `flow-init`.
-- `flowctl onboard` còn điều cần chốt: hỏi người dùng trước khi sửa mã.
+- Không có `.flow/`: làm theo quy ước sẵn có của repo, không tự khởi tạo. `flow fingerprint` đọc được repo bất kỳ và không ghi gì. Người dùng muốn đưa dự án vào quy trình thì dùng skill `flow-init`.
+- `flow onboard` còn điều cần chốt: hỏi người dùng trước khi sửa mã.
 
 ## Thứ tự đọc
 
@@ -19,8 +19,8 @@ Chạy `flowctl where`. Sau đó:
 
 1. `.flow/PROJECT.md`
 2. `.flow/services.md`
-3. Luật khớp tệp sắp chạm: `flowctl rules find --path <tệp>`
-4. Memory: `flowctl memory --text <từ khoá>`
+3. Luật khớp tệp sắp chạm: `flow rules find --path <tệp>`
+4. Memory: `flow memory --text <từ khoá>`
 5. `.flow/contracts.md`
 6. `.flow/consumed/`
 7. `.flow/reference/`
@@ -93,7 +93,7 @@ Chỉ dẫn máy đọc luôn được giữ ở mọi mức: build tag, lint di
 - Thân theo `commit.body`, kiểu theo `commit.style`, ngôn ngữ theo `commit.language`.
 - Mô tả PR ngắn, lời thường, theo template của repo nếu có, không thì `<gói>/templates/pr-description.md`.
 - Không nhắc harness trong mã, commit, PR.
-- Kiểm bằng `flowctl commitmsg --message "…"` và `flowctl prmsg <tệp>`.
+- Kiểm bằng `flow commitmsg --message "…"` và `flow prmsg <tệp>`.
 
 ## Hỏi người dùng
 
@@ -111,7 +111,7 @@ Mọi quyết định của người dùng được đưa thẳng lên chat kèm
 2. Không, giữ cảnh báo
 ```
 
-Có câu trả lời thì ghi bằng `flowctl plan decide <slug> <Dn> "<lựa chọn>"`. Xin duyệt plan cũng trên chat, tóm tắt tối đa 10 dòng.
+Có câu trả lời thì ghi bằng `flow plan decide <slug> <Dn> "<lựa chọn>"`. Xin duyệt plan cũng trên chat, tóm tắt tối đa 10 dòng.
 
 ## Nhắc nhanh
 

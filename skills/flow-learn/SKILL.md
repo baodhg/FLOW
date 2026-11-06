@@ -41,14 +41,14 @@ test > check máy > gate > luật > memory
 Tìm trùng trước, vì hai luật nói cùng một điều sẽ dần mâu thuẫn. Có rồi thì sửa bản cũ.
 
 ```
-flowctl rules find --text "<từ khoá>"
-flowctl memory --text "<từ khoá>"
+flow rules find --text "<từ khoá>"
+flow memory --text "<từ khoá>"
 ```
 
 Luật:
 
 ```
-flowctl rules new --title "Một Book không có hai Loan đang mở" --type invariant --severity critical --scope "src/loan/**" --tags loan --enforced "test: loan.concurrency"
+flow rules new --title "Một Book không có hai Loan đang mở" --type invariant --severity critical --scope "src/loan/**" --tags loan --enforced "test: loan.concurrency"
 ```
 
 Mỗi luật có bốn mục, điền đủ, không chép định dạng từ nơi khác:
@@ -61,10 +61,10 @@ Mỗi luật có bốn mục, điền đủ, không chép định dạng từ n�
 Memory:
 
 ```
-flowctl memory new --type feedback --name "xem-diff-truoc-commit" --desc "Cho người dùng xem diff trước khi commit"
+flow memory new --type feedback --name "xem-diff-truoc-commit" --desc "Cho người dùng xem diff trước khi commit"
 ```
 
-Xong chạy `flowctl reindex`, `flowctl doctor`.
+Xong chạy `flow reindex`, `flow doctor`.
 
 ## Ranh giới dự án ↔ bộ skill
 
@@ -91,8 +91,8 @@ Không chép mã. Không chép câu từ của dự án.
 4. Chạy, cả hai phải sạch:
 
 ```
-flowctl selftest
-flowctl provenance --against <dự án>
+flow selftest
+flow provenance --against <dự án>
 ```
 
 **Từ riêng của một dự án** (ví dụ thuật ngữ để nhận diện tên định danh) khai trong `.flow/profile.json`, ở `hygiene.namingTerms`, không đưa vào bộ skill.

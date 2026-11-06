@@ -5,19 +5,19 @@ description: Dùng khi vừa thay đổi mã trong repo có `.flow/` và sắp t
 
 # flow-post — đóng việc
 
-Đi đủ các bước theo thứ tự. Việc cần người dùng cho phép thì hỏi trên chat. `flowctl plan status <slug> VERIFYING` ở đầu nếu có plan.
+Đi đủ các bước theo thứ tự. Việc cần người dùng cho phép thì hỏi trên chat. `flow plan status <slug> VERIFYING` ở đầu nếu có plan.
 
 ## 1. Verify
 
-`flowctl verify --full`. Bước bị bỏ qua không phải là xanh; ghi rõ bước nào và vì sao. Đỏ thì phân biệt đỏ sẵn so với mốc và đỏ do mình.
+`flow verify --full`. Bước bị bỏ qua không phải là xanh; ghi rõ bước nào và vì sao. Đỏ thì phân biệt đỏ sẵn so với mốc và đỏ do mình.
 
 ## 2. Vệ sinh
 
-`flowctl check --base <nhánh gốc>` gồm bí mật, chú thích, lộ harness, tên, DRY. Sửa mã cho qua, không nới công cụ.
+`flow check --base <nhánh gốc>` gồm bí mật, chú thích, lộ harness, tên, DRY. Sửa mã cho qua, không nới công cụ.
 
 ## 3. Nghiệm thu thật
 
-Lấy danh sách: `flowctl gates --changed --print post`.
+Lấy danh sách: `flow gates --changed --print post`.
 
 | Loại thay đổi | Cách nghiệm thu |
 |---|---|
@@ -32,8 +32,8 @@ Dùng skill `flow-review` trên toàn bộ diff so với nhánh gốc, vì lỗi
 
 ## 5. Cập nhật ngữ cảnh
 
-- `CONTEXT.md` của module đã chạm: sửa phần lệch, sinh nếu thiếu (`flowctl context missing --changed`), xem skill `flow-context`
-- `.flow/coverage.md`: `flowctl context coverage`
+- `CONTEXT.md` của module đã chạm: sửa phần lệch, sinh nếu thiếu (`flow context missing --changed`), xem skill `flow-context`
+- `.flow/coverage.md`: `flow context coverage`
 - `.flow/contracts.md` khi hợp đồng đổi
 - Luật và memory qua skill `flow-learn`
 
@@ -47,19 +47,19 @@ Dùng skill `flow-review` trên toàn bộ diff so với nhánh gốc, vì lỗi
 
 ## 7. Sức khoẻ
 
-`flowctl doctor`.
+`flow doctor`.
 
 ## 8. Giao theo `autonomy.level`
 
 - `local`: để commit trên nhánh, báo tên nhánh.
-- `pr`: `flowctl prmsg <tệp mô tả>` rồi push và mở PR.
+- `pr`: `flow prmsg <tệp mô tả>` rồi push và mở PR.
 - `merge`: như `pr`, merge khi cổng xanh, trừ phần thuộc `branches.ownerOnly`.
 
 Viết mô tả từ `<gói>/templates/pr-description.md` hoặc template của repo. Không nhắc harness.
 
 ## 9. Đóng plan
 
-`flowctl plan status <slug> DONE`. Còn nợ thì `PARKED`, ghi vào mục 8 của plan.
+`flow plan status <slug> DONE`. Còn nợ thì `PARKED`, ghi vào mục 8 của plan.
 
 ## Báo cáo
 

@@ -6,7 +6,7 @@ Mục tiêu: <một câu nói kết quả người dùng nhận được>
 
 ## 0. Quyết định
 
-Câu hỏi dành cho người dùng được hỏi trên chat, mục này chỉ là biên bản. Ghi câu trả lời bằng `flowctl plan decide`. Không còn gì để hỏi thì xoá dòng mẫu.
+Câu hỏi dành cho người dùng được hỏi trên chat, mục này chỉ là biên bản. Ghi câu trả lời bằng `flow plan decide`. Không còn gì để hỏi thì xoá dòng mẫu.
 
 - [ ] **D1** <câu hỏi> — lựa chọn: <A (khuyến nghị)> / <B> — ảnh hưởng: <…>
 
@@ -60,4 +60,4 @@ Mặc định chỉ thêm, không phá. Thay đổi phá vỡ đi theo expand-co
 
 ## 9. Ledger
 
-Nhật ký trong lúc làm: helper mới, ma sát, quyết định nhỏ. Ghi bằng `flowctl task note`.
+Nhật ký trong lúc làm: helper mới, ma sát, quyết định nhỏ. Ghi bằng `flow task note`.

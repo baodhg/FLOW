@@ -11,8 +11,12 @@ Bản phát hành đầu tiên.
 ### Thêm
 
 - 14 skill cho quy trình explore, plan, execute, post, kèm khuôn mẫu plan và runbook, gate tuỳ chọn.
-- Công cụ `flowctl`: quản lý ngữ cảnh cục bộ `.flow/`, plan và task, luật, kiểm tra trước commit, phát hiện mã trùng, worktree.
+- Công cụ `flow`: quản lý ngữ cảnh cục bộ `.flow/`, plan và task, luật, kiểm tra trước commit, phát hiện mã trùng, worktree.
 - Rà soát bí mật và thông tin cá nhân, không in giá trị ra màn hình.
 - Tự đo quy ước của repo khi vào dự án và ghi nguồn gốc của từng cấu hình.
-- `flowctl install` và `flowctl uninstall` cho Claude Code, Codex, Gemini CLI.
-- `flowctl provenance`: đo đoạn trùng nguyên văn giữa bộ skill và một thư mục dự án.
+- `flow install` và `flow uninstall` cho Claude Code, Codex, Gemini CLI.
+- `flow provenance`: đo đoạn trùng nguyên văn giữa bộ skill và một thư mục dự án.
+
+### Đã biết
+
+- Lệnh `flow` trùng tên với trình kiểm kiểu Flow (`flow-bin`). Xem mục "Trùng tên lệnh" trong README.

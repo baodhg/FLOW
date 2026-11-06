@@ -8,7 +8,7 @@ description: Dùng khi việc cần chia thành nhiều bước, chạm nhiều 
 ## Tạo
 
 ```
-flowctl plan new <slug> --title "…" --branch <nhánh> --repos a,b
+flow plan new <slug> --title "…" --branch <nhánh> --repos a,b
 ```
 
 Tệp nằm ở `.flow/plans/active/`, dựa trên `<gói>/templates/plan.md`. Tài liệu khác của việc này để trong `.flow/handoff/`.
@@ -26,7 +26,7 @@ Tệp nằm ở `.flow/plans/active/`, dựa trên `<gói>/templates/plan.md`. T
 | 6. Kiểm chứng | Lệnh verify, gate khớp, cách nghiệm thu thật |
 | 7. Rollback | Cách lùi từng bước, điểm không lùi được |
 | 8. Nhánh và việc còn lại | Tên nhánh, phần để sau, nợ khi `PARKED` |
-| 9. Ledger | `flowctl task note` tự ghi vào đây |
+| 9. Ledger | `flow task note` tự ghi vào đây |
 
 ## Task
 
@@ -37,15 +37,15 @@ Tệp nằm ở `.flow/plans/active/`, dựa trên `<gói>/templates/plan.md`. T
 - Một task một kết quả kiểm được và một commit.
 - Test đỏ phải nói được hành vi nào, không phải "viết test".
 - Tái dùng ghi đúng thứ tìm thấy ở explore. Không có thì ghi `không`.
-- Thêm task sau này: `flowctl task add <slug> "…"`.
+- Thêm task sau này: `flow task add <slug> "…"`.
 
 ## Quyết định
 
 Không để câu hỏi nằm im trong tệp. Hỏi trên chat theo mục "Hỏi người dùng" ở skill `flow`, rồi ghi:
 
 ```
-flowctl plan decisions <slug>
-flowctl plan decide <slug> D1 "<lựa chọn>"
+flow plan decisions <slug>
+flow plan decide <slug> D1 "<lựa chọn>"
 ```
 
 Không có gì để hỏi thì xoá dòng mẫu D1.
@@ -57,7 +57,7 @@ DRAFT → APPROVED → EXECUTING → VERIFYING → DONE
 Rẽ nhánh: PARKED (tạm dừng, còn nợ) · ABANDONED (bỏ)
 ```
 
-Đổi bằng `flowctl plan status <slug> <STATUS>`.
+Đổi bằng `flow plan status <slug> <STATUS>`.
 
 - `APPROVED` bị từ chối khi còn quyết định mở, vì thi hành trên điều chưa chốt là làm lại.
 - `DONE` bị từ chối khi còn task mở. Còn nợ thì dùng `PARKED` và ghi vào mục 8.

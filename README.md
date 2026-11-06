@@ -1,6 +1,6 @@
-# agent-flow
+# FLOW
 
-Bộ skill quy trình cho coding agent, kèm công cụ dòng lệnh `flowctl`. Bộ này đưa agent đi qua điều tra, kế hoạch, thi hành, đóng việc, và giữ kiến thức của từng dự án ngay trong dự án đó.
+Bộ skill quy trình cho coding agent, kèm công cụ dòng lệnh `flow`. Bộ này đưa agent đi qua điều tra, kế hoạch, thi hành, đóng việc, và giữ kiến thức của từng dự án ngay trong dự án đó.
 
 Bộ skill trung tính: không gắn với stack, ngôn ngữ hay kiểu commit nào. Quy ước được đo từ dự án.
 
@@ -8,11 +8,11 @@ Bộ skill trung tính: không gắn với stack, ngôn ngữ hay kiểu commit 
 
 ```
 npm install -g github:baodhg/FLOW
-flowctl install
-flowctl install --hooks
+flow install
+flow install --hooks
 ```
 
-Bước `npm install` chỉ đặt gói lên máy và không đụng tới cấu hình agent. `flowctl install` mới nối skill và chèn khối chỉ dẫn, nên bạn thấy rõ lúc nào cấu hình bị đổi.
+Bước `npm install` chỉ đặt gói lên máy và không đụng tới cấu hình agent. `flow install` mới nối skill và chèn khối chỉ dẫn, nên bạn thấy rõ lúc nào cấu hình bị đổi.
 
 | Cờ | Tác dụng |
 |---|---|
@@ -20,11 +20,19 @@ Bước `npm install` chỉ đặt gói lên máy và không đụng tới cấu
 | `--no-bridge` | Không ghi cầu nối vào tệp chỉ dẫn toàn cục của agent |
 | `--hooks` | Cài thêm hook |
 
-Nâng cấp: chạy lại `npm install -g github:baodhg/FLOW` rồi `flowctl install`.
+Nâng cấp: chạy lại `npm install -g github:baodhg/FLOW` rồi `flow install`.
 
-Gỡ: chạy `flowctl uninstall` trước, rồi `npm uninstall -g @baodhg/agent-flow`. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
+Gỡ: chạy `flow uninstall` trước, rồi `npm uninstall -g @baodhg/flow`. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
 
 Chạy từ bản clone: `node install.mjs` nhận cùng các cờ, thêm `--uninstall`.
+
+### Trùng tên lệnh
+
+Trình kiểm kiểu Flow (`flow-bin`) cũng dùng lệnh `flow`, và cả hai cùng có `flow check`.
+
+- Trong script của `package.json`, `flow` là bản trong `node_modules/.bin` của dự án.
+- Trong shell, `flow` là bản đứng trước trong `PATH`. Kiểm tra bằng `flow --version`.
+- Đã cài `flow-bin` toàn cục thì `npm install -g` báo `EEXIST`. Gỡ một trong hai bản, vì npm không cài đè lệnh của gói khác.
 
 ## Mô hình trung tính theo lớp
 
@@ -86,9 +94,9 @@ Mỗi module có thêm `CONTEXT.md` cạnh mã, cũng không commit.
 
 Gate mẫu nằm ở `<gói>/presets/gates/`, khuôn tài liệu ở `<gói>/templates/`.
 
-## flowctl
+## flow
 
-Xem đủ cú pháp bằng `flowctl help`. Các nhóm chính:
+Xem đủ cú pháp bằng `flow help`. Các nhóm chính:
 
 | Nhóm | Lệnh |
 |---|---|
@@ -116,8 +124,8 @@ Chi tiết ở skill `flow-learn`.
 
 ```
 npm test
-flowctl selftest
-flowctl provenance --against <dự án>
+flow selftest
+flow provenance --against <dự án>
 ```
 
 Mọi thay đổi vào bộ skill phải qua cả ba. `selftest` kiểm chuẩn của skill, khuôn và gate. `provenance` kiểm nội dung không mang gì từ dự án được đối chiếu.
@@ -132,4 +140,4 @@ Các đóng góp theo `CONTRIBUTING.md`, báo lỗ hổng theo `SECURITY.md`, l�
 
 Đây là dự án độc lập, không liên kết, không được bảo trợ hay xác nhận bởi Anthropic, OpenAI hay Google. Claude và Claude Code là nhãn hiệu của Anthropic, Codex là nhãn hiệu của OpenAI, Gemini là nhãn hiệu của Google; các tên này chỉ được dùng để nói công cụ tương thích với sản phẩm nào.
 
-Gói không có phụ thuộc npm. `gitleaks` là công cụ tuỳ chọn, không đóng gói kèm: có trên máy thì `flowctl secrets scan` gọi thêm, không có thì bỏ qua lớp đó.
+Gói không có phụ thuộc npm. `gitleaks` là công cụ tuỳ chọn, không đóng gói kèm: có trên máy thì `flow secrets scan` gọi thêm, không có thì bỏ qua lớp đó.
