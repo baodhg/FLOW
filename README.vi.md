@@ -4,7 +4,6 @@
 
 [![npm](https://img.shields.io/npm/v/flow-harness)](https://www.npmjs.com/package/flow-harness)
 [![CI](https://github.com/baodhg/FLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/baodhg/FLOW/actions/workflows/ci.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/baodhg/FLOW/badge)](https://scorecard.dev/viewer/?uri=github.com/baodhg/FLOW)
 [![License: MIT](https://img.shields.io/npm/l/flow-harness)](LICENSE)
 
 FLOW Harness, gọi tắt FLOW, là bộ skill quy trình cho coding agent, kèm công cụ dòng lệnh `flow`. Bộ này đưa agent đi qua điều tra, kế hoạch, thi hành, đóng việc, và giữ kiến thức của từng dự án ngay trong dự án đó.
@@ -12,6 +11,18 @@ FLOW Harness, gọi tắt FLOW, là bộ skill quy trình cho coding agent, kèm
 Bộ skill trung tính: không gắn với stack, ngôn ngữ hay kiểu commit nào. Quy ước được đo từ dự án.
 
 Dùng được với Claude Code, Codex và Gemini CLI. Cần Node.js 20 trở lên.
+
+## Vì sao có thể tin
+
+Đây là dự án mới do một người duy trì, nên dưới đây là những điều bạn tự kiểm tra được trước khi cài:
+
+- **Không có phụ thuộc npm và không có script cài đặt.** Không kéo thêm gói nào, và `npm install` không chạy mã nào của gói này.
+- **Bản build kiểm chứng được.** Các bản phát hành được GitHub Actions build và đăng kèm [provenance](https://docs.npmjs.com/generating-provenance-statements/), gắn gói với đúng commit công khai. Sau khi cài, chạy `npm audit signatures` trong dự án của bạn để kiểm tra.
+- **Không có telemetry.** Gói không gửi dữ liệu đi đâu.
+- **Không đổi gì mà bạn không thấy.** Trình hướng dẫn liệt kê mọi thay đổi trước khi áp dụng, và `flow install --dry` xem trước phần việc tương tự.
+- **Dễ thử, dễ gỡ.** `flow install --scope project` chỉ tác động lên một repo và không vào git; `flow uninstall --scope project` gỡ sạch.
+
+Xem [SECURITY.md](SECURITY.md) để biết công cụ đụng tới những gì và giới hạn của nó.
 
 ## Cài đặt
 
