@@ -3,6 +3,8 @@
 [English](../README.md) · Tiếng Việt
 
 [![npm](https://img.shields.io/npm/v/flow-harness)](https://www.npmjs.com/package/flow-harness)
+[![npm downloads](https://img.shields.io/npm/dm/flow-harness)](https://npm-stat.com/charts.html?package=flow-harness)
+[![GitHub stars](https://img.shields.io/github/stars/baodhg/FLOW)](https://github.com/baodhg/FLOW)
 [![CI](https://github.com/baodhg/FLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/baodhg/FLOW/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/npm/l/flow-harness)](../LICENSE)
 
