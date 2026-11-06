@@ -80,6 +80,30 @@ test('accepting the defaults installs every skill for the detected agents', asyn
   assert.match(text, /flow init/);
 });
 
+test('the first question picks the language, starting from the system language', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const env = { ...homeEnv(home), LANG: 'en_US.UTF-8', LC_ALL: '', LC_MESSAGES: '', LANGUAGE: '' };
+  const { code, text } = await play([DOWN, ENTER, ENTER, ENTER, ENTER, ENTER], { home, env, runner: realRunner(home), lang: undefined });
+  assert.equal(code, 0, text);
+  assert.match(text, /Language \/ Ngôn ngữ/);
+  assert.match(text, /Cài skill cho những agent nào\? \(chọn được nhiều\)/);
+  assert.match(text, /Đã chọn 1\/3/);
+  assert.match(text, /Đã nối 14 skill/);
+  assert.doesNotMatch(text, /This will change:/);
+});
+
+test('--lang skips the language question and several agents can be selected together', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const { code, text } = await play([DOWN, SPACE, DOWN, SPACE, ENTER, ENTER, ENTER, ENTER], { home, env: homeEnv(home), runner: realRunner(home) });
+  assert.equal(code, 0, text);
+  assert.doesNotMatch(text, /Language \/ Ngôn ngữ/);
+  assert.match(text, /2 of 3 selected/);
+  assert.match(text, /3 of 3 selected/);
+  assert.match(text, /Agents: .*Claude Code, Codex, Gemini CLI/);
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'skills', 'flow')));
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'flow')));
+});
+
 test('cancelling at the final question changes nothing', async (t) => {
   const home = fakeHome(t);
   const before = fs.readdirSync(home).sort();

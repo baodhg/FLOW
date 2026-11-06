@@ -60,10 +60,18 @@ test('a required list refuses to submit empty and shows why', () => {
   assert.equal(reduceMulti(reduceMulti(refused, 'toggle'), 'submit').done, true);
 });
 
+test('a multi-select shows each box and how many are selected', () => {
+  const symbols = symbolsFor({ WT_SESSION: '1' }, 'win32');
+  const lines = renderMulti({ index: 1, options: options() }, { title: 'T', help: 'h', requiredMessage: 'r', count: (n, total) => `${n}/${total}`, symbols, useColor: false });
+  assert.ok(lines.some((line) => line.includes('[✓] A')));
+  assert.ok(lines.some((line) => line.includes('[ ] B')));
+  assert.ok(lines.includes('  2/3'));
+});
+
 test('symbols fall back to ASCII on consoles that may not draw them', () => {
   assert.equal(symbolsFor({}, 'win32').on, '[x]');
-  assert.equal(symbolsFor({ WT_SESSION: 'x' }, 'win32').on, '◼');
-  assert.equal(symbolsFor({ TERM: 'xterm' }, 'linux').on, '◼');
+  assert.equal(symbolsFor({ WT_SESSION: 'x' }, 'win32').on, '[✓]');
+  assert.equal(symbolsFor({ TERM: 'xterm' }, 'linux').on, '[✓]');
   assert.equal(symbolsFor({ TERM: 'linux' }, 'linux').on, '[x]');
 });
 
