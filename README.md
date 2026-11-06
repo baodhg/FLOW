@@ -4,7 +4,7 @@
 [![CI](https://github.com/baodhg/FLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/baodhg/FLOW/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/npm/l/flow-harness)](LICENSE)
 
-English · [Tiếng Việt](README.vi.md)
+English · [Tiếng Việt](https://github.com/baodhg/FLOW/blob/main/README.vi.md)
 
 A workflow skill pack and CLI for coding agents. FLOW Harness, or FLOW for short, takes an agent from explore through plan and execute to post, and keeps what it learns about each project inside that project.
 
