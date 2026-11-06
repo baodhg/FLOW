@@ -3,16 +3,20 @@ import { PassThrough } from 'node:stream';
 import { test } from 'node:test';
 import {
   CANCELLED,
+  WENT_BACK,
   actionFor,
   fitLine,
   multiValue,
+  progressBar,
   reduceMulti,
   reduceSelect,
   renderMulti,
+  renderSelect,
   runPrompt,
   selectValue,
   symbolsFor,
   visibleLength,
+  wrapText,
 } from '../lib/prompts.mjs';
 
 const options = () => [
@@ -20,6 +24,7 @@ const options = () => [
   { value: 'b', label: 'B', checked: false, locked: false },
   { value: 'c', label: 'C', checked: true, locked: true },
 ];
+const modern = symbolsFor({ WT_SESSION: '1' }, 'win32');
 
 test('keys map to actions, including cancel, back and Escape', () => {
   assert.equal(actionFor('\u0003', { ctrl: true, name: 'c' }), 'cancel');
@@ -57,17 +62,31 @@ test('a required list refuses to submit empty and shows why', () => {
   const refused = reduceMulti(empty, 'submit');
   assert.equal(refused.done, undefined);
   assert.equal(refused.error, true);
-  const symbols = symbolsFor({ WT_SESSION: '1' }, 'win32');
-  assert.ok(renderMulti(refused, { title: 'T', help: 'help', requiredMessage: 'pick one', symbols, useColor: false }).includes('  pick one'));
+  assert.ok(renderMulti(refused, { title: 'T', help: 'help', requiredMessage: 'pick one', symbols: modern, useColor: false }).includes('  pick one'));
   assert.equal(reduceMulti(reduceMulti(refused, 'toggle'), 'submit').done, true);
 });
 
 test('a multi-select shows each box and how many are selected', () => {
-  const symbols = symbolsFor({ WT_SESSION: '1' }, 'win32');
-  const lines = renderMulti({ index: 1, options: options() }, { title: 'T', help: 'h', requiredMessage: 'r', count: (n, total) => `${n}/${total}`, symbols, useColor: false });
+  const lines = renderMulti({ index: 1, options: options() }, { title: 'T', help: 'h', requiredMessage: 'r', count: (n, total) => `${n}/${total}`, symbols: modern, useColor: false });
   assert.ok(lines.some((line) => line.includes('[✓] A')));
   assert.ok(lines.some((line) => line.includes('[ ] B')));
   assert.ok(lines.includes('  2/3'));
+});
+
+test('options with a detail show it on their own wrapped lines under the label', () => {
+  const state = { index: 0, options: [{ value: 1, label: 'One', detail: 'word '.repeat(30).trim() }, { value: 2, label: 'Two' }] };
+  const lines = renderSelect(state, { title: 'Title', why: 'Why this matters', help: 'help', symbols: modern, useColor: false, width: 50 });
+  assert.equal(lines[0], '  Title');
+  assert.equal(lines[1], '  Why this matters');
+  assert.ok(lines.some((line) => /^\s+❯ ● One$/.test(line)));
+  assert.ok(lines.filter((line) => /^\s+word/.test(line)).length > 1);
+  assert.ok(lines.every((line) => line.length <= 50), lines.join('\n'));
+});
+
+test('text wraps on words and the progress bar reflects the step', () => {
+  assert.deepEqual(wrapText('one two three', 7), ['one two', 'three']);
+  assert.equal(progressBar(1, 2, { symbols: modern, useColor: false, size: 4 }), '━━──');
+  assert.equal(progressBar(2, 2, { symbols: modern, useColor: false, size: 4 }), '━━━━');
 });
 
 test('symbols fall back to ASCII on consoles that may not draw them', () => {
@@ -84,7 +103,7 @@ test('long lines are cut to the terminal width so redraws stay on one row', () =
   assert.equal(fitLine('short', 40), 'short');
 });
 
-function promptHarness(initial) {
+function promptHarness(initial, extra = {}) {
   const input = new PassThrough();
   const output = new PassThrough();
   let written = '';
@@ -96,19 +115,18 @@ function promptHarness(initial) {
     reduce: reduceSelect,
     value: selectValue,
     render: (s) => [`at ${s.index}`],
-    renderDone: (s, r) => [r === CANCELLED ? 'cancelled' : `chose ${selectValue(s)}`],
+    ...extra,
   });
   return { input, done, text: () => written };
 }
 
-test('a prompt reads real key sequences and restores the cursor when done', async () => {
+test('a prompt reads real key sequences, erases itself and restores the cursor', async () => {
   const h = promptHarness({ index: 0, options: options() });
   h.input.write('\x1b[B');
   await new Promise((r) => setTimeout(r, 10));
   h.input.write('\r');
   assert.equal(await h.done, 'b');
-  assert.match(h.text(), /chose b/);
-  assert.ok(h.text().endsWith('\x1b[?25h'));
+  assert.match(h.text(), /\x1b\[1A\r\x1b\[J\x1b\[\?25h$/);
 });
 
 test('Ctrl+C cancels a prompt and restores the cursor', async () => {
@@ -116,4 +134,17 @@ test('Ctrl+C cancels a prompt and restores the cursor', async () => {
   h.input.write('\u0003');
   assert.equal(await h.done, CANCELLED);
   assert.ok(h.text().endsWith('\x1b[?25h'));
+});
+
+test('going back is ignored on the first step and reported on later ones', async () => {
+  const first = promptHarness({ index: 0, options: options() });
+  first.input.write('\x1b[D');
+  await new Promise((r) => setTimeout(r, 10));
+  first.input.write('\r');
+  assert.equal(await first.done, 'a');
+  let left;
+  const later = promptHarness({ index: 0, options: options() }, { canGoBack: true, onLeave: (s) => (left = s) });
+  later.input.write('\x1b[D');
+  assert.equal(await later.done, WENT_BACK);
+  assert.equal(left.index, 0);
 });

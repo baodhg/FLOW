@@ -88,7 +88,7 @@ test('the first question picks the language, starting from the system language',
   const { code, text } = await play([DOWN, ENTER, ENTER, ENTER, ENTER, ENTER], { home, env, runner: realRunner(home), lang: undefined });
   assert.equal(code, 0, text);
   assert.match(text, /Language \/ Ngôn ngữ/);
-  assert.match(text, /Cài skill cho những agent nào\? \(chọn được nhiều\)/);
+  assert.match(text, /Cài cho công cụ AI nào\?/);
   assert.match(text, /Đã chọn 1\/3/);
   assert.match(text, /Đã nối 14 skill/);
   assert.doesNotMatch(text, /This will change:/);
@@ -101,7 +101,7 @@ test('--lang skips the language question and several agents can be selected toge
   assert.doesNotMatch(text, /Language \/ Ngôn ngữ/);
   assert.match(text, /2 of 3 selected/);
   assert.match(text, /3 of 3 selected/);
-  assert.match(text, /Agents: .*Claude Code, Codex, Gemini CLI/);
+  assert.match(text, /AI tools\s+Claude Code, Codex, Gemini CLI/);
   assert.ok(fs.existsSync(path.join(home, '.claude', 'skills', 'flow')));
   assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'flow')));
 });
@@ -129,7 +129,7 @@ test('back from the review skips a question that no longer applies', async (t) =
   const keys = [ENTER, ENTER, LEFT, DOWN, ENTER, ENTER];
   const { code, text } = await play(keys, { home, env: homeEnv(home), runner: realRunner(home) });
   assert.equal(code, 0, text);
-  assert.doesNotMatch(text, /Add protective hooks/);
+  assert.doesNotMatch(text, /automatic protection/);
   assert.deepEqual(fs.readdirSync(path.join(home, '.agents', 'skills')).sort(), [...CORE_SKILLS].sort());
 });
 
@@ -161,11 +161,37 @@ test('the first question has nowhere to go back to and does not offer it', async
   assert.match(text, /Enter choose · ← back/);
 });
 
-test('going back erases the answered line instead of stacking it', async (t) => {
+test('each step shows its position, a plain explanation and what was already chosen', async (t) => {
   const home = fakeHome(t, ['.claude']);
-  const { code, text } = await play([ENTER, ENTER, ENTER, LEFT, CTRL_C], { home, env: homeEnv(home), runner: realRunner(home) });
+  const { code, text } = await play([ENTER, ENTER, ENTER, CTRL_C], { home, env: homeEnv(home), runner: realRunner(home) });
   assert.equal(code, 130);
-  assert.match(text, /\x1b\[6A\r\x1b\[J/, 'the review block and the answer above it are cleared');
+  assert.match(text, /Step 1\/4 · AI tools/);
+  assert.match(text, /Step 2\/4 · Skill set/);
+  assert.match(text, /Step 3\/4 · Protection/);
+  assert.match(text, /Step 4\/4 · Confirm/);
+  assert.match(text, /write directly to a main branch/);
+  assert.match(text, /Selected\n\s+AI tools\s+Claude Code\n\s+Skill set\s+Full \(recommended\)/);
+});
+
+test('choosing custom adds a step and the total updates', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const { code, text } = await play([ENTER, UP, ENTER, CTRL_C], { home, env: homeEnv(home), runner: realRunner(home) });
+  assert.equal(code, 130);
+  assert.match(text, /Step 3\/5 · Choose skills/);
+});
+
+test('a short window drops the summary so redraws never scroll out of reach', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const { text } = await play([ENTER, ENTER, ENTER, CTRL_C], { home, env: homeEnv(home), runner: realRunner(home), rows: 12 });
+  assert.match(text, /Step 4\/4 · Confirm/);
+  assert.doesNotMatch(text, /Selected\n/);
+});
+
+test('every step replaces the previous one instead of stacking below it', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const { text } = await play([ENTER, LEFT, CTRL_C], { home, env: homeEnv(home), runner: realRunner(home) });
+  const erasures = text.match(/\x1b\[\d+A\r\x1b\[J/g) || [];
+  assert.equal(erasures.length, 3);
 });
 
 test('cancelling at the final question changes nothing', async (t) => {
@@ -207,7 +233,7 @@ test('no agent can be left selected: the wizard waits until one is chosen', asyn
   const home = fakeHome(t, []);
   const { code, text } = await play([ENTER, SPACE, ENTER, ENTER, ENTER, ENTER], { home, env: homeEnv(home), runner: realRunner(home) });
   assert.equal(code, 0, text);
-  assert.match(text, /Select at least one agent/);
+  assert.match(text, /Select at least one tool/);
   assert.ok(fs.existsSync(path.join(home, '.claude', 'skills', 'flow')));
 });
 
