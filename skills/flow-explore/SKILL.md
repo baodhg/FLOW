@@ -9,7 +9,7 @@ Không sửa mã trong bước này. Kết quả là một khối thông tin đ�
 
 ## Các bước
 
-1. Nạp ngữ cảnh theo thứ tự ở skill `flow`. Luật và gate: `flowctl rules find --path <tệp>`, `flowctl gates --path <tệp> --print explore`.
+1. Nạp ngữ cảnh theo thứ tự ở skill `flow`. Luật và gate: `flow rules find --path <tệp>`, `flow gates --path <tệp> --print explore`.
 2. Truy vết ba hướng: upstream (ai gọi vào, dữ liệu từ đâu), luồng chính, downstream (ai nhận kết quả, ai đọc bảng).
 3. Grep có mục tiêu, ghi mọi phát hiện dạng `tệp:dòng`. Không đọc tràn cả thư mục.
 4. Trả lời "đã có sẵn chưa".
@@ -19,7 +19,7 @@ Không sửa mã trong bước này. Kết quả là một khối thông tin đ�
 
 Bước bắt buộc, vì viết lại thứ đã có tạo ra hai bản sẽ lệch nhau.
 
-1. `flowctl dup find "<ý đồ>"` — tìm theo ý đồ, ví dụ `dup find "định dạng ngày hẹn trả"`, không chỉ theo tên.
+1. `flow dup find "<ý đồ>"` — tìm theo ý đồ, ví dụ `dup find "định dạng ngày hẹn trả"`, không chỉ theo tên.
 2. Grep API cốt lõi mà việc đó phải gọi. Ví dụ: hàm định dạng ngày gần như chắc chắn gọi thư viện ngày của dự án.
 3. Grep kiểu vào và kiểu ra. Ví dụ: hàm nhận `Loan` và trả chuỗi có thể chính là `formatDueDate`.
 

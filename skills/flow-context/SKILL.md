@@ -1,6 +1,6 @@
 ---
 name: flow-context
-description: Dùng khi sắp sửa một module mà `flowctl context missing` báo thiếu tài liệu, khi `.flow/coverage.md` báo nghi cũ, khi tài liệu module nói khác mã, khi cần ghi lại cách repo dùng một dịch vụ ngoài hoặc một chuẩn chung. Người dùng hay nói "viết tài liệu module", "ghi lại cách module này chạy", "cập nhật context", "tóm tắt module cho agent".
+description: Dùng khi sắp sửa một module mà `flow context missing` báo thiếu tài liệu, khi `.flow/coverage.md` báo nghi cũ, khi tài liệu module nói khác mã, khi cần ghi lại cách repo dùng một dịch vụ ngoài hoặc một chuẩn chung. Người dùng hay nói "viết tài liệu module", "ghi lại cách module này chạy", "cập nhật context", "tóm tắt module cho agent".
 ---
 
 # flow-context — ngữ cảnh module
@@ -22,7 +22,7 @@ description: Dùng khi sắp sửa một module mà `flowctl context missing` b�
 
 ## Sinh `CONTEXT.md`
 
-1. `flowctl exclude` trước, để tệp không vào git. Tiếp: `flowctl context new <dir>`.
+1. `flow exclude` trước, để tệp không vào git. Tiếp: `flow context new <dir>`.
 2. Đọc theo stack của module, mỗi stack một danh sách đọc và một danh sách trích:
    - [references/nestjs.md](references/nestjs.md)
    - [references/go.md](references/go.md)
@@ -31,7 +31,7 @@ description: Dùng khi sắp sửa một module mà `flowctl context missing` b�
    - [references/python.md](references/python.md)
 3. Điền các mục. Mục không có gì thì ghi `không có`, không để khung.
 4. Đọc lại từ đầu, xoá mọi dòng không chắc.
-5. `flowctl context coverage`, `flowctl doctor`.
+5. `flow context coverage`, `flow doctor`.
 
 ## Luật viết
 
@@ -54,8 +54,8 @@ Mỗi chuẩn dùng chung một tệp, từ `<gói>/templates/reference.md`: tê
 ## Chốt
 
 ```
-flowctl context coverage
-flowctl doctor
+flow context coverage
+flow doctor
 ```
 
 Module nghi cũ xử lý bằng skill `flow-sync`. Điều về hệ thống đáng thành luật thì dùng skill `flow-learn`.

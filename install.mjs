@@ -29,7 +29,7 @@ function skillDescription(src) {
 function commandTargets(s) {
   const short = s.name === 'flow' ? 'start' : s.name.replace(/^flow-/, '');
   const desc = `${skillDescription(s.src).replace(/"/g, "'")} (${MARK})`;
-  const ask = `Dùng skill \`${s.name}\` của agent-flow (nếu chưa nạp: đọc ${path.join(s.src, 'SKILL.md').replace(/\\/g, '/')}) và làm đúng theo nó.`;
+  const ask = `Dùng skill \`${s.name}\` của FLOW (nếu chưa nạp: đọc ${path.join(s.src, 'SKILL.md').replace(/\\/g, '/')}) và làm đúng theo nó.`;
   return [
     {
       label: 'Gemini',
@@ -59,7 +59,7 @@ function commands() {
         continue;
       }
       if (cur !== null && !cur.includes(MARK)) {
-        log(`  ! ${t.label}: ${t.file} đã tồn tại và không phải của agent-flow — BỎ QUA`);
+        log(`  ! ${t.label}: ${t.file} đã tồn tại và không phải của FLOW — BỎ QUA`);
         continue;
       }
       if (cur === t.body) continue;
@@ -73,11 +73,11 @@ function commands() {
 }
 
 function hookCommand(sub) {
-  return `node "${path.join(HOME_DIR, 'bin', 'flowctl.mjs').replace(/\\/g, '/')}" hook ${sub}`;
+  return `node "${path.join(HOME_DIR, 'bin', 'flow.mjs').replace(/\\/g, '/')}" hook ${sub}`;
 }
 
 function isOurHook(h) {
-  return typeof h?.command === 'string' && /flowctl\.mjs" hook (session|pretool)/.test(h.command);
+  return typeof h?.command === 'string' && /flow(?:ctl)?\.mjs" hook (session|pretool)/.test(h.command);
 }
 
 function hooks() {
@@ -134,15 +134,15 @@ const BRIDGE_FILES = [
 const BIN_DIR = path.join(USER, '.local', 'bin');
 const VIA_PACKAGE_MANAGER = /[\\/]node_modules[\\/]/.test(HOME_DIR);
 const BEGIN_PREFIX = '## agent-flow — quy trình toàn cục';
-const BEGIN = `${BEGIN_PREFIX} (do flowctl install quản lý)`;
+const BEGIN = `${BEGIN_PREFIX} (do flow install quản lý)`;
 const END = '_(hết khối agent-flow)_';
 
 const BRIDGE = `${BEGIN}
 
-Bộ skill \`flow\`, \`flow-explore\`, \`flow-plan\`, \`flow-execute\`, \`flow-post\`, \`flow-context\`, \`flow-learn\`, \`flow-sync\`, \`flow-init\` nằm ở \`${HOME_DIR.replace(/\\/g, '/')}\`; công cụ \`flowctl\`.
+Bộ skill \`flow\`, \`flow-explore\`, \`flow-plan\`, \`flow-execute\`, \`flow-post\`, \`flow-context\`, \`flow-learn\`, \`flow-sync\`, \`flow-init\` nằm ở \`${HOME_DIR.replace(/\\/g, '/')}\`; công cụ \`flow\`.
 
-- Thư mục làm việc (hoặc thư mục cha) có \`.flow/profile.json\` ⇒ trước khi sửa mã: nạp skill \`flow\`, chạy \`flowctl where\`, đọc \`.flow/PROJECT.md\`. Theo explore → plan → execute → post; người dùng sửa cách làm ⇒ \`flow-learn\` ngay.
-- Không có \`.flow/\` ⇒ làm việc theo quy ước của repo; không tự khởi tạo — người dùng muốn join dự án thì dùng \`flow-init\` (đo quy ước bằng \`flowctl fingerprint\`, tự cấu hình theo đúng dự án).
+- Thư mục làm việc (hoặc thư mục cha) có \`.flow/profile.json\` ⇒ trước khi sửa mã: nạp skill \`flow\`, chạy \`flow where\`, đọc \`.flow/PROJECT.md\`. Theo explore → plan → execute → post; người dùng sửa cách làm ⇒ \`flow-learn\` ngay.
+- Không có \`.flow/\` ⇒ làm việc theo quy ước của repo; không tự khởi tạo — người dùng muốn join dự án thì dùng \`flow-init\` (đo quy ước bằng \`flow fingerprint\`, tự cấu hình theo đúng dự án).
 - Quy ước mã / commit / PR / chú thích của một repo đọc từ \`.flow/profile.json\` (đã phân giải: chỉ dẫn & lệ của dự án > điều người dùng chốt > sở thích ở ~/.agent-flow/user.json) — KHÔNG mang từ repo khác sang.
 - \`.flow/\` và \`CONTEXT.md\` module là local-only: không commit, không nhắc tên trong mã / commit / PR.
 - Luật riêng của dự án (AGENTS.md / CLAUDE.md của repo) luôn thắng khi mâu thuẫn.
@@ -176,7 +176,7 @@ function isCurrentLink(p, src) {
 function isStaleLink(p, name) {
   const t = linkTarget(p);
   if (!t || !name.startsWith('flow')) return false;
-  return !fs.existsSync(t) || fs.existsSync(path.join(t, '..', '..', 'bin', 'flowctl.mjs'));
+  return !fs.existsSync(t) || ['flow.mjs', 'flowctl.mjs'].some((entry) => fs.existsSync(path.join(t, '..', '..', 'bin', entry)));
 }
 
 function skills() {
@@ -209,7 +209,7 @@ function linkSkills() {
         continue;
       }
       if (st && !stale) {
-        log(`  ! ${t.label}: ${dst} đã tồn tại và không phải của agent-flow — BỎ QUA (không ghi đè)`);
+        log(`  ! ${t.label}: ${dst} đã tồn tại và không phải của FLOW — BỎ QUA (không ghi đè)`);
         continue;
       }
       if (stale && !DRY) fs.rmSync(dst, { recursive: false, force: true });
@@ -221,10 +221,20 @@ function linkSkills() {
   }
 }
 
+function removeRetiredShims() {
+  for (const name of ['flowctl', 'flowctl.cmd']) {
+    const file = path.join(BIN_DIR, name);
+    if (!fs.existsSync(file) || !fs.readFileSync(file, 'utf8').includes('flowctl.mjs')) continue;
+    if (!DRY) fs.rmSync(file);
+    log(`  − tên lệnh cũ ${file}`);
+  }
+}
+
 function writeShims() {
-  const entry = path.join(HOME_DIR, 'bin', 'flowctl.mjs');
-  const sh = path.join(BIN_DIR, 'flowctl');
-  const cmd = path.join(BIN_DIR, 'flowctl.cmd');
+  removeRetiredShims();
+  const entry = path.join(HOME_DIR, 'bin', 'flow.mjs');
+  const sh = path.join(BIN_DIR, 'flow');
+  const cmd = path.join(BIN_DIR, 'flow.cmd');
   const shBody = `#!/bin/sh\nexec node "${entry.replace(/\\/g, '/')}" "$@"\n`;
   const cmdBody = `@node "${entry}" %*\r\n`;
   for (const [file, body] of [
@@ -233,21 +243,21 @@ function writeShims() {
   ]) {
     const cur = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
     if (VIA_PACKAGE_MANAGER && !UNINSTALL) {
-      if (cur !== null && cur.includes('flowctl.mjs')) {
+      if (cur !== null && cur.includes('flow.mjs')) {
         if (!DRY) fs.rmSync(file);
         log(`  − bản cũ ${file}`);
       }
       continue;
     }
     if (UNINSTALL) {
-      if (cur !== null && cur.includes('flowctl.mjs')) {
+      if (cur !== null && cur.includes('flow.mjs')) {
         if (!DRY) fs.rmSync(file);
         log(`  − ${file}`);
       }
       continue;
     }
-    if (cur !== null && !cur.includes('flowctl.mjs')) {
-      log(`  ! ${file} đã tồn tại và không phải của agent-flow — BỎ QUA`);
+    if (cur !== null && !cur.includes('flow.mjs')) {
+      log(`  ! ${file} đã tồn tại và không phải của FLOW — BỎ QUA`);
       continue;
     }
     if (cur === body) {
@@ -305,7 +315,7 @@ if (banner) log(banner);
 log(`${UNINSTALL ? 'Gỡ cài đặt' : 'Cài đặt'} từ ${HOME_DIR}${DRY ? ' (dry-run)' : ''}`);
 log('Skill:');
 linkSkills();
-log('Lệnh flowctl:');
+log('Lệnh flow:');
 writeShims();
 log('Lệnh slash (Gemini /flow:<x> · Codex /prompts:flow-<x>; Claude Code gọi thẳng /flow-<x>):');
 commands();
@@ -317,7 +327,7 @@ if (HOOKS || UNINSTALL) {
 }
 if (!UNINSTALL) {
   log('');
-  log('Xong. Mở phiên CLI mới để thấy skill (Gemini: /skills reload). Kiểm: `flowctl help`.');
-  if (!HOOKS) log('Hook chưa cài. Tự chạy: flowctl install --hooks (SessionStart nạp lại trạng thái sau nén · PreToolUse chặn ghi nhánh được bảo vệ, cho Claude Code + Codex).');
-  if (VIA_PACKAGE_MANAGER) log('Trước khi gỡ gói: chạy flowctl uninstall, rồi npm uninstall -g @baodhg/agent-flow.');
+  log('Xong. Mở phiên CLI mới để thấy skill (Gemini: /skills reload). Kiểm: `flow help`.');
+  if (!HOOKS) log('Hook chưa cài. Tự chạy: flow install --hooks (SessionStart nạp lại trạng thái sau nén · PreToolUse chặn ghi nhánh được bảo vệ, cho Claude Code + Codex).');
+  if (VIA_PACKAGE_MANAGER) log('Trước khi gỡ gói: chạy flow uninstall, rồi npm uninstall -g @baodhg/flow.');
 }

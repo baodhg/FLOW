@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { clusterize, scanText } from '../lib/dup.mjs';
 import { lintRunbook } from '../lib/runbook.mjs';
 
-const CLI = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'bin', 'flowctl.mjs');
+const CLI = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'bin', 'flow.mjs');
 
 function sh(cwd, cmd, args, input) {
   return spawnSync(cmd, args, { cwd, encoding: 'utf8', windowsHide: true, input });
@@ -155,7 +155,7 @@ test('tasks drive execution: next, done with commit, helper ledger, DONE refused
     run('task', 'done', 'p1', 'T2');
     assert.equal(run('plan', 'status', 'p1', 'DONE').status, 0);
     const hook = sh(dir, process.execPath, [CLI, 'hook', 'session'], JSON.stringify({ cwd: dir }));
-    assert.match(hook.stdout, /agent-flow đang bật/);
+    assert.match(hook.stdout, /FLOW đang bật/);
     const none = sh(os.tmpdir(), process.execPath, [CLI, 'hook', 'session'], JSON.stringify({ cwd: os.tmpdir() }));
     assert.equal(none.stdout, '');
   } finally {

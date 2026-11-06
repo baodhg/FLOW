@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { decideSecretCommand, envSecretValues, mask, safeEnvView, scanEnvValuesInLine, scanPiiInLine, scanSecretsInLine, scannerSelfCheck, sensitiveFile } from '../lib/secrets.mjs';
 
 const PACK = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const CLI = path.join(PACK, 'bin', 'flowctl.mjs');
+const CLI = path.join(PACK, 'bin', 'flow.mjs');
 const FAKE = {
   aws: `AKIA${'QWERTYUIOPASDFGH'}`,
   github: `ghp_${'a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8'}`,
@@ -34,7 +34,7 @@ function repo(prefix) {
   return dir;
 }
 
-const flowctl = (cwd, ...a) => sh(cwd, process.execPath, [CLI, ...a]);
+const flow = (cwd, ...a) => sh(cwd, process.execPath, [CLI, ...a]);
 const secretRules = (file, text) => scanSecretsInLine({ file, line: 1, text }).map((f) => f.rule);
 
 test('scanner self-check holds and every known token shape is caught', () => {
@@ -130,19 +130,19 @@ test('regressions: real-looking values that are not secrets: weak dev values, or
 test('check blocks a staged secret without printing it; allow records a verdict with a reason', () => {
   const dir = repo('af-sec-check-');
   try {
-    flowctl(dir, 'init');
+    flow(dir, 'init');
     fs.writeFileSync(path.join(dir, 'config.ts'), `export const apiKey = "${FAKE.field}";\n`);
     sh(dir, 'git', ['add', '-A']);
-    const r = flowctl(dir, 'check', '--staged');
+    const r = flow(dir, 'check', '--staged');
     assert.equal(r.status, 1, r.stdout);
     assert.match(r.stdout, /SECRET secret-field/);
     assert.ok(!r.stdout.includes(FAKE.field), 'value must never be printed');
-    const json = flowctl(dir, 'secrets', 'scan', '--staged', '--json', '--no-gitleaks');
+    const json = flow(dir, 'secrets', 'scan', '--staged', '--json', '--no-gitleaks');
     assert.ok(!json.stdout.includes(FAKE.field));
     const fp = /#([0-9a-f]{16})/.exec(r.stdout)[1];
-    assert.equal(flowctl(dir, 'secrets', 'allow', fp).status, 1, 'reason is mandatory');
-    assert.equal(flowctl(dir, 'secrets', 'allow', fp, '--reason', 'đã mở ra xem: giá trị mẫu').status, 0);
-    assert.equal(flowctl(dir, 'check', '--staged').status, 0);
+    assert.equal(flow(dir, 'secrets', 'allow', fp).status, 1, 'reason is mandatory');
+    assert.equal(flow(dir, 'secrets', 'allow', fp, '--reason', 'đã mở ra xem: giá trị mẫu').status, 0);
+    assert.equal(flow(dir, 'check', '--staged').status, 0);
     const base = fs.readFileSync(path.join(dir, '.flow', 'secrets', 'baseline.json'), 'utf8');
     assert.ok(!base.includes(FAKE.field), 'baseline stores fingerprints only');
   } finally {
@@ -153,12 +153,12 @@ test('check blocks a staged secret without printing it; allow records a verdict 
 test('value layer finds a live .env value sitting bare in prose, which shape rules miss', () => {
   const dir = repo('af-sec-value-');
   try {
-    flowctl(dir, 'init');
+    flow(dir, 'init');
     fs.writeFileSync(path.join(dir, '.env'), `DB_PASSWORD=${FAKE.prose}\n`);
     fs.writeFileSync(path.join(dir, 'notes.md'), `Mật khẩu staging hiện là ${FAKE.prose} nhé\n`);
     assert.deepEqual(secretRules('notes.md', `Mật khẩu staging hiện là ${FAKE.prose} nhé`), [], 'control: shape rules are blind here');
     sh(dir, 'git', ['add', 'notes.md']);
-    const r = flowctl(dir, 'secrets', 'scan', '--staged', '--no-gitleaks');
+    const r = flow(dir, 'secrets', 'scan', '--staged', '--no-gitleaks');
     assert.equal(r.status, 1, r.stdout);
     assert.match(r.stdout, /env-value:DB_PASSWORD/);
     assert.ok(!r.stdout.includes(FAKE.prose));
@@ -170,15 +170,15 @@ test('value layer finds a live .env value sitting bare in prose, which shape rul
 test('history scan finds a secret deleted from the tree and reports the commit', () => {
   const dir = repo('af-sec-hist-');
   try {
-    flowctl(dir, 'init');
+    flow(dir, 'init');
     fs.writeFileSync(path.join(dir, 'config.ts'), `export const apiKey = "${FAKE.field}";\n`);
     sh(dir, 'git', ['add', 'config.ts']);
     sh(dir, 'git', ['commit', '-qm', 'feat: add config']);
     fs.writeFileSync(path.join(dir, 'config.ts'), 'export const apiKey = process.env.API_KEY;\n');
     sh(dir, 'git', ['add', 'config.ts']);
     sh(dir, 'git', ['commit', '-qm', 'fix: read key from env']);
-    assert.equal(flowctl(dir, 'secrets', 'scan', '--no-gitleaks').status, 0);
-    const h = flowctl(dir, 'secrets', 'scan', '--history', '--no-gitleaks');
+    assert.equal(flow(dir, 'secrets', 'scan', '--no-gitleaks').status, 0);
+    const h = flow(dir, 'secrets', 'scan', '--history', '--no-gitleaks');
     assert.equal(h.status, 1, h.stdout);
     assert.match(h.stdout, /config\.ts:1 .*@[0-9a-f]{9} chưa push/);
     assert.ok(!h.stdout.includes(FAKE.field));
@@ -190,14 +190,14 @@ test('history scan finds a secret deleted from the tree and reports the commit',
 test('watch list stores only salted hashes and still catches the bare value', () => {
   const dir = repo('af-sec-watch-');
   try {
-    flowctl(dir, 'init');
+    flow(dir, 'init');
     const account = `19${'03456789012'}`;
     assert.equal(sh(dir, process.execPath, [CLI, 'secrets', 'watch', '--label', 'so-tk'], account).status, 0);
     const stored = fs.readFileSync(path.join(dir, '.flow', 'secrets', 'watch.json'), 'utf8');
     assert.ok(!stored.includes(account));
     fs.writeFileSync(path.join(dir, 'pay.md'), `Chuyển vào ${account} giúp\n`);
     sh(dir, 'git', ['add', 'pay.md']);
-    const r = flowctl(dir, 'secrets', 'scan', '--staged', '--no-gitleaks', '--no-pii');
+    const r = flow(dir, 'secrets', 'scan', '--staged', '--no-gitleaks', '--no-pii');
     assert.equal(r.status, 1, r.stdout);
     assert.match(r.stdout, /watch:so-tk/);
     assert.ok(!r.stdout.includes(account));
@@ -239,7 +239,7 @@ test('hook blocks reading real env files and writing secrets, only in repos usin
   const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'af-sec-none-'));
   const hook = (payload) => sh(dir, process.execPath, [CLI, 'hook', 'pretool'], JSON.stringify(payload));
   try {
-    flowctl(dir, 'init');
+    flow(dir, 'init');
     assert.equal(hook({ tool_name: 'Read', cwd: dir, tool_input: { file_path: path.join(dir, '.env') } }).status, 2);
     assert.equal(hook({ tool_name: 'Read', cwd: dir, tool_input: { file_path: path.join(dir, '.env.example') } }).status, 0);
     assert.equal(hook({ tool_name: 'Read', cwd: dir, tool_input: { file_path: path.join(dir, 'README.md') } }).status, 0);
@@ -259,11 +259,11 @@ test('hook blocks reading real env files and writing secrets, only in repos usin
 test('commit messages and PR descriptions refuse secrets and personal data', () => {
   const dir = repo('af-sec-msg-');
   try {
-    flowctl(dir, 'init', '--commit-body', 'free');
-    const c = flowctl(dir, 'commitmsg', '--message', `fix: rotate key ${FAKE.aws}`);
+    flow(dir, 'init', '--commit-body', 'free');
+    const c = flow(dir, 'commitmsg', '--message', `fix: rotate key ${FAKE.aws}`);
     assert.notEqual(c.status, 0);
     assert.ok(!c.stdout.includes(FAKE.aws));
-    const p = flowctl(dir, 'prmsg', '--message', `Summary: called the customer at 09${'12478365'} to confirm the refund.`);
+    const p = flow(dir, 'prmsg', '--message', `Summary: called the customer at 09${'12478365'} to confirm the refund.`);
     assert.notEqual(p.status, 0);
     assert.match(p.stdout, /thông tin cá nhân/);
   } finally {
@@ -275,7 +275,7 @@ test('a scan that read nothing is reported as broken, never as clean', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'af-sec-empty-'));
   try {
     sh(dir, 'git', ['init', '-q', '-b', 'main']);
-    const r = flowctl(dir, 'secrets', 'scan', '--path', '.', '--no-gitleaks');
+    const r = flow(dir, 'secrets', 'scan', '--path', '.', '--no-gitleaks');
     assert.equal(r.status, 3, r.stdout);
     assert.match(r.stdout, /phép đo hỏng/);
   } finally {
@@ -284,7 +284,7 @@ test('a scan that read nothing is reported as broken, never as clean', () => {
 });
 
 test('the skill pack itself holds no secret or personal data', () => {
-  const r = flowctl(PACK, 'secrets', 'scan', '--path', '.', '--no-gitleaks');
+  const r = flow(PACK, 'secrets', 'scan', '--path', '.', '--no-gitleaks');
   assert.equal(r.status, 0, r.stdout);
   assert.match(r.stdout, / 0 secret · 0 PII/, r.stdout);
 });

@@ -15,8 +15,8 @@ Chỉ bản phát hành mới nhất.
 Nên biết trước khi cài:
 
 - `npm install` không chạy script nào của gói.
-- `flowctl install` nối skill vào `~/.claude/skills` và `~/.agents/skills`, chèn một khối chỉ dẫn vào tệp chỉ dẫn toàn cục của Claude Code, Codex, Gemini CLI, và sinh lệnh slash. Tệp cấu hình được sao lưu thành `*.pre-agent-flow.bak` trước lần ghi đầu tiên. Xem trước bằng `flowctl install --dry`.
-- `flowctl install --hooks` thêm hook vào cấu hình của agent. Hook có thể chặn lệnh của agent, ví dụ ghi vào nhánh được bảo vệ hoặc đọc `.env`.
+- `flow install` nối skill vào `~/.claude/skills` và `~/.agents/skills`, chèn một khối chỉ dẫn vào tệp chỉ dẫn toàn cục của Claude Code, Codex, Gemini CLI, và sinh lệnh slash. Tệp cấu hình được sao lưu thành `*.pre-agent-flow.bak` trước lần ghi đầu tiên. Xem trước bằng `flow install --dry`.
+- `flow install --hooks` thêm hook vào cấu hình của agent. Hook có thể chặn lệnh của agent, ví dụ ghi vào nhánh được bảo vệ hoặc đọc `.env`.
 - Gói không gửi dữ liệu đi đâu và không có telemetry.
 
 ## Giới hạn

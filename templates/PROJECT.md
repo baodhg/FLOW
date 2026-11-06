@@ -31,6 +31,6 @@ Cập nhật: {{date}} · Loại dự án: {{kind}}
 
 ## Đi đâu tiếp
 
-- Luật theo tệp sắp chạm: `flowctl rules find --path <tệp>`
-- Việc đang dở: `flowctl plan list`
-- Module thiếu ngữ cảnh: `flowctl context missing`
+- Luật theo tệp sắp chạm: `flow rules find --path <tệp>`
+- Việc đang dở: `flow plan list`
+- Module thiếu ngữ cảnh: `flow context missing`

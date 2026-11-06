@@ -10,10 +10,10 @@ Một việc song song một worktree, vì hai tiến trình chung một cây l�
 ## Lệnh
 
 ```
-flowctl wt new <slug> --repo <repo> --base <ref>
-flowctl wt list
-flowctl wt context <slug>
-flowctl wt done <slug>
+flow wt new <slug> --repo <repo> --base <ref>
+flow wt list
+flow wt context <slug>
+flow wt done <slug>
 ```
 
 - `wt new`: tạo worktree và nhánh, mang theo tệp ngữ cảnh cục bộ, vì git bỏ qua chúng nên chúng không tự sang.
@@ -39,7 +39,7 @@ flowctl wt done <slug>
 
 - Mỗi subagent một worktree, phạm vi rõ.
 - Không để hai subagent cùng sửa một tệp. Cần sửa chung thì xếp tuần tự.
-- Sau mỗi đợt, `flowctl dup check --base <nhánh gốc>` như ở skill `flow-execute`.
+- Sau mỗi đợt, `flow dup check --base <nhánh gốc>` như ở skill `flow-execute`.
 
 ## Khi buộc phải chung cây
 
@@ -50,5 +50,5 @@ flowctl wt done <slug>
 - Đo baseline bằng worktree riêng thay vì checkout đè lên cây đang làm:
 
 ```
-flowctl wt new baseline --base <ref>
+flow wt new baseline --base <ref>
 ```

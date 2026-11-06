@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import { artRows, renderBanner } from '../lib/banner.mjs';
 
 const ANSI = /\x1b\[/;
-const CLI = path.join(import.meta.dirname, '..', 'bin', 'flowctl.mjs');
+const CLI = path.join(import.meta.dirname, '..', 'bin', 'flow.mjs');
 const terminal = { isTTY: true, columns: 120, env: {} };
 
 test('output that is piped or running in CI never carries the banner', () => {

@@ -15,7 +15,7 @@
     "reason": "Standard way to build a URL slug in JavaScript: strip diacritics, lowercase, replace non-alphanumerics."
   },
   {
-    "file": "bin/flowctl.mjs",
+    "file": "bin/flow.mjs",
     "match": "const a = argv[i];",
     "reason": "Standard hand-written argv loop with no expressive choice beyond the Node API."
   },

@@ -1,5 +1,5 @@
 {
-  "name": "@baodhg/agent-flow",
+  "name": "@baodhg/flow",
   "version": "0.1.0",
   "description": "A workflow skill pack and CLI that take coding agents from explore through plan and execute to post, with each repo's context kept local.",
   "license": "MIT",
@@ -9,8 +9,8 @@
   "bugs": { "url": "https://github.com/baodhg/FLOW/issues" },
   "keywords": ["agent-skills", "claude-code", "codex", "gemini-cli", "workflow", "cli"],
   "type": "module",
-  "bin": { "flowctl": "bin/flowctl.mjs" },
-  "files": ["bin", "lib", "skills", "templates", "presets", "install.mjs", "provenance-allow.json", "README.md", "CHANGELOG.md", "SECURITY.md"],
+  "bin": { "flow": "bin/flow.mjs" },
+  "files": ["bin", "!bin/flowctl.mjs", "lib", "skills", "templates", "presets", "install.mjs", "provenance-allow.json", "README.md", "CHANGELOG.md", "SECURITY.md"],
   "publishConfig": { "access": "restricted" },
   "scripts": { "test": "node --test test/core.test.mjs test/v2.test.mjs test/v3.test.mjs test/v4.test.mjs test/v5.test.mjs test/provenance.test.mjs test/install.test.mjs test/banner.test.mjs" },
   "engines": { "node": ">=20" }

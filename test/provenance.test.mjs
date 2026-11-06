@@ -68,7 +68,7 @@ test('a source that yields no files is a broken measurement, not a clean result'
   const pack = tempDir(t);
   const empty = tempDir(t);
   write(pack, 'skill.md', UNRELATED);
-  const bin = path.join(import.meta.dirname, '..', 'bin', 'flowctl.mjs');
+  const bin = path.join(import.meta.dirname, '..', 'bin', 'flow.mjs');
   const run = spawnSync(process.execPath, [bin, 'provenance', '--against', empty], { encoding: 'utf8' });
   assert.equal(run.status, 3);
   assert.match(run.stdout, /phép đo hỏng/);

@@ -40,7 +40,7 @@ Công cụ kiểm cũng là mã và cần test.
 
 ## Đặt test
 
-Theo quy ước đo được của repo: `flowctl fingerprint` và các test xung quanh. Không mang cấu trúc từ repo khác. Dời test thì đếm trước và sau để chắc không mất ca.
+Theo quy ước đo được của repo: `flow fingerprint` và các test xung quanh. Không mang cấu trúc từ repo khác. Dời test thì đếm trước và sau để chắc không mất ca.
 
 ## Mẫu báo cáo
 

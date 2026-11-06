@@ -1,6 +1,6 @@
 ---
 name: flow-secrets
-description: Dùng khi cần soát khoá, mật khẩu, thông tin cá nhân trong repo có `.flow/` — lúc mới nhận repo, trước khi mở công khai, khi `flowctl check` có cảnh báo, khi nghi bị lộ, khi cần đọc `.env` hay nối CSDL mà không để lộ giá trị. Người dùng hay nói "có lộ key không", "quét secret", "lỡ commit mật khẩu", "đổi khoá", "dữ liệu cá nhân", "PII".
+description: Dùng khi cần soát khoá, mật khẩu, thông tin cá nhân trong repo có `.flow/` — lúc mới nhận repo, trước khi mở công khai, khi `flow check` có cảnh báo, khi nghi bị lộ, khi cần đọc `.env` hay nối CSDL mà không để lộ giá trị. Người dùng hay nói "có lộ key không", "quét secret", "lỡ commit mật khẩu", "đổi khoá", "dữ liệu cá nhân", "PII".
 ---
 
 # flow-secrets — bí mật và thông tin cá nhân
@@ -22,20 +22,20 @@ Cần cả ba, vì mỗi lớp mù ở chỗ lớp khác thấy. Dòng tóm tắ
 Kết quả rỗng cần chứng minh công cụ bắt được.
 
 - Đọc số dòng đã quét. Quét 0 dòng nghĩa là phép đo hỏng hoặc repo trống, không phải sạch.
-- Tự chạy đối chứng: trong một repo git tạm, commit một tệp có khoá giả đúng hình dạng rồi chạy `flowctl secrets scan --path <repo tạm>`. Không báo gì thì lớp dò đang hỏng, chưa thể kết luận repo thật sạch.
+- Tự chạy đối chứng: trong một repo git tạm, commit một tệp có khoá giả đúng hình dạng rồi chạy `flow secrets scan --path <repo tạm>`. Không báo gì thì lớp dò đang hỏng, chưa thể kết luận repo thật sạch.
 
 ## Lệnh
 
 ```
-flowctl secrets scan
-flowctl secrets scan --staged
-flowctl secrets scan --base <ref>
-flowctl secrets scan --history
-flowctl secrets scan --local
-flowctl secrets scan --path <thư mục> --env <tệp>
-flowctl secrets env <tệp>
-flowctl secrets watch --label <nhãn> < <tệp>
-flowctl secrets allow <#mã> --reason "…" --debt
+flow secrets scan
+flow secrets scan --staged
+flow secrets scan --base <ref>
+flow secrets scan --history
+flow secrets scan --local
+flow secrets scan --path <thư mục> --env <tệp>
+flow secrets env <tệp>
+flow secrets watch --label <nhãn> < <tệp>
+flow secrets allow <#mã> --reason "…" --debt
 ```
 
 - Mặc định quét cây hiện tại, không nói gì về lịch sử. `--history` quét toàn bộ commit.
@@ -64,7 +64,7 @@ flowctl secrets allow <#mã> --reason "…" --debt
 
 | Việc | Tránh | Làm |
 |---|---|---|
-| Đọc `.env` | `cat .env` | `flowctl secrets env .env` |
+| Đọc `.env` | `cat .env` | `flow secrets env .env` |
 | Kiểm một biến có chưa | `echo $API_KEY` | `test -n "$API_KEY" && echo có` |
 | Xem độ dài | In giá trị | `echo ${#API_KEY}` |
 | Nối CSDL | Dán URI vào dòng lệnh | Client nhận URI qua biến, vì khi lỗi client có thể in lại đối số |
@@ -76,7 +76,7 @@ Bộ não cục bộ cũng không chứa giá trị. `.flow/` chỉ ghi tên bi�
 ## Khi nào chạy
 
 - Khi vào dự án: `secrets scan`, `--history`.
-- Trước commit: đã có trong `flowctl check --staged`.
-- Trước khi đóng việc: `flowctl check --base <ref>`.
+- Trước commit: đã có trong `flow check --staged`.
+- Trước khi đóng việc: `flow check --base <ref>`.
 - Trước khi công khai hoặc chia sẻ repo: `--history`, `--local`.
 - Khi nghi lộ: `--history`, rồi xử lý theo mục Phán xử.

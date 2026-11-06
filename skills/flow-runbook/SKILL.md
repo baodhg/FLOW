@@ -8,10 +8,10 @@ description: Dùng khi người hoặc agent phải chạy tay một quy trình 
 ## Lệnh
 
 ```
-flowctl runbook new <loại> <slug> --plan <plan>
-flowctl runbook lint <slug>
-flowctl runbook lint <slug> --after
-flowctl runbook list
+flow runbook new <loại> <slug> --plan <plan>
+flow runbook lint <slug>
+flow runbook lint <slug> --after
+flow runbook list
 ```
 
 `lint` chạy trước khi thực hiện. `lint --after` chạy sau khi đã điền kết quả. Tệp nằm ở `.flow/handoff/`.
@@ -53,8 +53,8 @@ Bàn giao cho QC hoặc người khác. Mục 0 là điều kiện gửi dạng 
 ## Trình tự
 
 1. Tạo runbook, điền mọi chỗ `<…>`.
-2. `flowctl runbook lint <slug>`.
+2. `flow runbook lint <slug>`.
 3. Hỏi ai chạy nếu là môi trường thật. Việc chỉ người chạy được thì giao và chờ, không tự đánh dấu.
 4. Chạy, điền kết quả đúng như đã thấy.
-5. `flowctl runbook lint <slug> --after`.
+5. `flow runbook lint <slug> --after`.
 6. Đối chiếu bảng diễn giải. Khớp hàng "không khớp" thì dừng và báo, không sửa bảng cho hợp.

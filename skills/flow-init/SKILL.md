@@ -12,13 +12,13 @@ Bộ skill trung tính: không giả định stack, ngôn ngữ hay kiểu commi
 - Thứ đội nhìn thấy (commit, PR, tên test, định dạng mã, ngôn ngữ tài liệu): theo đội.
 - Thứ chỉ người dùng thấy (ngôn ngữ chat, ghi chú trong `.flow/`): theo người dùng.
 
-Sở thích cá nhân xem bằng `flowctl user`, đặt bằng `flowctl user set <khoá> <giá trị>`. Lớp này luôn nằm dưới quy ước dự án.
+Sở thích cá nhân xem bằng `flow user`, đặt bằng `flow user set <khoá> <giá trị>`. Lớp này luôn nằm dưới quy ước dự án.
 
 ## Các bước chung
 
-1. `flowctl fingerprint` — đo quy ước, không ghi gì. Đọc kết quả trước khi quyết định.
-2. `flowctl init` — tạo `.flow/` và ghi `.git/info/exclude`. Thêm `--stack`, `--gates`, `--comments`, `--commit-body`, `--context`, `--name` khi kết quả đo chưa đúng.
-3. `flowctl onboard` — xem điều còn lệch. Hỏi người dùng trên chat, ghi bằng `flowctl onboard decide <Dn> <số>`.
+1. `flow fingerprint` — đo quy ước, không ghi gì. Đọc kết quả trước khi quyết định.
+2. `flow init` — tạo `.flow/` và ghi `.git/info/exclude`. Thêm `--stack`, `--gates`, `--comments`, `--commit-body`, `--context`, `--name` khi kết quả đo chưa đúng.
+3. `flow onboard` — xem điều còn lệch. Hỏi người dùng trên chat, ghi bằng `flow onboard decide <Dn> <số>`.
 4. Soát `modules`, `verify`, `canonical` trong `.flow/profile.json`. Điền `.flow/PROJECT.md` và `.flow/services.md`.
 5. Rà bí mật ngay, dùng skill `flow-secrets`, vì nên biết trước khi có thêm công cụ đọc repo.
 6. Làm theo loại dự án dưới.
@@ -30,8 +30,8 @@ Sở thích cá nhân xem bằng `flowctl user`, đặt bằng `flowctl user set
 
 - Sở thích người dùng trở thành quy ước.
 - Điền bản đồ service và module từ thiết kế, kể cả khi chưa có mã.
-- Gieo vài luật đầu tiên bằng `flowctl rules new`, mỗi luật có cách kiểm.
-- Chọn gate theo rủi ro: `flowctl init --gates ui-change,schema-migration`.
+- Gieo vài luật đầu tiên bằng `flow rules new`, mỗi luật có cách kiểm.
+- Chọn gate theo rủi ro: `flow init --gates ui-change,schema-migration`.
 
 ### Repo có đội
 
@@ -43,29 +43,29 @@ Sở thích cá nhân xem bằng `flowctl user`, đặt bằng `flowctl user set
 ### Hệ đang chạy production
 
 - Bắt đầu chỉ đọc, đặt `autonomy.level` là `local`.
-- Đo baseline: `flowctl verify` để biết cái gì đỏ sẵn, nếu không sẽ không phân biệt được lỗi cũ với lỗi do mình gây ra.
+- Đo baseline: `flow verify` để biết cái gì đỏ sẵn, nếu không sẽ không phân biệt được lỗi cũ với lỗi do mình gây ra.
 - Rút luật từ lịch sử sửa lỗi (`git log --grep`) và hỏi người dùng những điều cấm kỵ, vì chúng hiếm khi nằm trong mã.
 - Xác nhận `branches.protected` và `branches.ownerOnly` với người dùng.
 - Viết characterization test trước khi sửa, để giữ hành vi đang có.
-- Chỉ chặn trùng lặp mới: `flowctl dup baseline`.
+- Chỉ chặn trùng lặp mới: `flow dup baseline`.
 - Mọi thao tác production đi qua runbook, dùng skill `flow-runbook`.
 
 ### Có sẵn hệ ngữ cảnh
 
 - Trỏ vào qua `layout.legacy`, `layout.moduleContext`, `layout.contracts`. Không di chuyển, không đổi tên, vì người khác và công cụ khác đang dùng chúng.
-- Tên tệp ngữ cảnh module khác mặc định thì dùng `flowctl init --context <tên>`.
+- Tên tệp ngữ cảnh module khác mặc định thì dùng `flow init --context <tên>`.
 - Dự án có chủ trương track tài liệu harness thì dùng `--track-harness`, không tự quyết.
 
 ## Chốt
 
 ```
-flowctl reindex
-flowctl context coverage
-flowctl doctor
-flowctl sync --mark
+flow reindex
+flow context coverage
+flow doctor
+flow sync --mark
 ```
 
-`flowctl onboard refresh` để đo lại khi quy ước của dự án đổi. `sync --mark` chỉ chạy khi đã đọc ngữ cảnh hiện có và kiểm với mã.
+`flow onboard refresh` để đo lại khi quy ước của dự án đổi. `sync --mark` chỉ chạy khi đã đọc ngữ cảnh hiện có và kiểm với mã.
 
 ## Báo cáo
 

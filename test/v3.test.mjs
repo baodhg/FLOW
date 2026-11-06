@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { commitTitleProblems, prDescriptionProblems } from '../lib/commands.mjs';
 import { declaredNames, newVietnameseNames, vietnameseHit, vietnameseMessages } from '../lib/naming.mjs';
 
-const CLI = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'bin', 'flowctl.mjs');
+const CLI = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'bin', 'flow.mjs');
 
 function sh(cwd, cmd, args, input) {
   return spawnSync(cmd, args, { cwd, encoding: 'utf8', windowsHide: true, input });
@@ -36,7 +36,7 @@ test('Vietnamese identifiers are caught in TS, C#, Go; English ones and legacy n
   assert.deepEqual(vietnameseMessages('throw new Error("Không tìm thấy sách"); logger.error("Khong tim thay nguoi muon"); throw new Error("Book not found.")'), ['Không tìm thấy sách', 'Khong tim thay nguoi muon']);
 });
 
-test('flowctl check blocks new Vietnamese names, Vietnamese file names and Vietnamese error messages', () => {
+test('flow check blocks new Vietnamese names, Vietnamese file names and Vietnamese error messages', () => {
   const { root, dir } = tempRepo('agent-flow-naming-');
   const run = (...a) => sh(dir, process.execPath, [CLI, ...a]);
   try {

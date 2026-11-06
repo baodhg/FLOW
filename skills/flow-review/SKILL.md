@@ -13,8 +13,8 @@ Chỉ gồm:
 
 - Diff: `git diff <nhánh gốc>...HEAD`, hoặc diff của đợt task
 - Mục tiêu: mục tiêu plan và danh sách task, hoặc một câu nếu không có plan
-- Luật khớp: `flowctl rules find --changed`
-- Kết quả công cụ: `flowctl check --base <nhánh gốc>`, `flowctl dup check --base <nhánh gốc>`, verify
+- Luật khớp: `flow rules find --changed`
+- Kết quả công cụ: `flow check --base <nhánh gốc>`, `flow dup check --base <nhánh gốc>`, verify
 
 Không đưa kết luận hay lập luận của người viết, vì chúng neo người soát vào cùng một cách nhìn. Không nói "phần này đã ổn".
 
@@ -30,7 +30,7 @@ Một thay đổi có thể đúng plan mà mã kém, hoặc mã đẹp mà lệ
 
 ### Chất lượng
 
-- DRY: có hàm mới trùng ý đồ với hàm có sẵn. Dùng `flowctl dup find` chứ không chỉ đọc diff, vì bản gốc thường nằm ngoài diff.
+- DRY: có hàm mới trùng ý đồ với hàm có sẵn. Dùng `flow dup find` chứ không chỉ đọc diff, vì bản gốc thường nằm ngoài diff.
 - Ranh giới: logic nằm đúng tầng, không xuyên module
 - Lỗi im lặng: `catch` rỗng, mặc định che lỗi, kết quả bỏ qua
 - Đồng thời: tranh chấp ghi, thiếu transaction, thao tác không idempotent
