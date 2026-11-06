@@ -11,6 +11,8 @@ const PACK = path.resolve(import.meta.dirname, '..');
 const INSTALL = path.join(PACK, 'install.mjs');
 const UP = '\x1b[A';
 const DOWN = '\x1b[B';
+const LEFT = '\x1b[D';
+const BACKSPACE = '\u007f';
 const SPACE = ' ';
 const ENTER = '\r';
 const CTRL_C = '\u0003';
@@ -102,6 +104,68 @@ test('--lang skips the language question and several agents can be selected toge
   assert.match(text, /Agents: .*Claude Code, Codex, Gemini CLI/);
   assert.ok(fs.existsSync(path.join(home, '.claude', 'skills', 'flow')));
   assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'flow')));
+});
+
+test('after pressing Enter on skills, going back lets you add the one you forgot', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const keys = [ENTER, UP, ENTER, ENTER, LEFT, DOWN, SPACE, ENTER, ENTER, ENTER];
+  const { code, text } = await play(keys, { home, env: homeEnv(home), runner: realRunner(home) });
+  assert.equal(code, 0, text);
+  const installed = fs.readdirSync(path.join(home, '.claude', 'skills')).sort();
+  assert.deepEqual(installed, [...CORE_SKILLS, 'flow-context'].sort());
+});
+
+test('going back keeps earlier choices and Backspace works like the left arrow', async (t) => {
+  const home = fakeHome(t);
+  const keys = [SPACE, ENTER, BACKSPACE, ENTER, ENTER, ENTER, ENTER];
+  const { code, text } = await play(keys, { home, env: homeEnv(home), runner: realRunner(home) });
+  assert.equal(code, 0, text);
+  assert.equal(fs.existsSync(path.join(home, '.claude', 'skills')), false, 'the agent turned off stays off after going back');
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'flow')));
+});
+
+test('back from the review skips a question that no longer applies', async (t) => {
+  const home = fakeHome(t, ['.gemini']);
+  const keys = [ENTER, ENTER, LEFT, DOWN, ENTER, ENTER];
+  const { code, text } = await play(keys, { home, env: homeEnv(home), runner: realRunner(home) });
+  assert.equal(code, 0, text);
+  assert.doesNotMatch(text, /Add protective hooks/);
+  assert.deepEqual(fs.readdirSync(path.join(home, '.agents', 'skills')).sort(), [...CORE_SKILLS].sort());
+});
+
+test('turning off every agent that uses hooks after choosing them removes the hooks', async (t) => {
+  const home = fakeHome(t, ['.claude', '.gemini']);
+  const keys = [ENTER, ENTER, DOWN, ENTER, LEFT, LEFT, LEFT, SPACE, ENTER, ENTER, ENTER];
+  const { code, text } = await play(keys, { home, env: homeEnv(home), runner: realRunner(home) });
+  assert.equal(code, 0, text);
+  assert.equal(fs.existsSync(path.join(home, '.claude', 'settings.json')), false);
+  assert.equal(fs.existsSync(path.join(home, '.claude', 'skills')), false);
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'flow')));
+});
+
+test('going back to the language question changes the language of later steps', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const env = { ...homeEnv(home), LANG: 'en_US.UTF-8', LC_ALL: '', LC_MESSAGES: '', LANGUAGE: '' };
+  const keys = [DOWN, ENTER, LEFT, UP, ENTER, ENTER, ENTER, ENTER, ENTER];
+  const { code, text } = await play(keys, { home, env, runner: realRunner(home), lang: undefined });
+  assert.equal(code, 0, text);
+  assert.match(text, /This will change:/);
+  assert.doesNotMatch(text, /Sẽ thay đổi:/);
+});
+
+test('the first question has nowhere to go back to and does not offer it', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const { code, text } = await play([LEFT, ENTER, ENTER, ENTER, LEFT, CTRL_C], { home, env: homeEnv(home), runner: realRunner(home) });
+  assert.equal(code, 130);
+  assert.match(text, /Enter next\n/);
+  assert.match(text, /Enter choose · ← back/);
+});
+
+test('going back erases the answered line instead of stacking it', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const { code, text } = await play([ENTER, ENTER, ENTER, LEFT, CTRL_C], { home, env: homeEnv(home), runner: realRunner(home) });
+  assert.equal(code, 130);
+  assert.match(text, /\x1b\[6A\r\x1b\[J/, 'the review block and the answer above it are cleared');
 });
 
 test('cancelling at the final question changes nothing', async (t) => {

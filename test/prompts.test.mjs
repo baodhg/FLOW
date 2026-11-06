@@ -21,9 +21,11 @@ const options = () => [
   { value: 'c', label: 'C', checked: true, locked: true },
 ];
 
-test('keys map to actions, including cancel on Ctrl+C and Escape', () => {
+test('keys map to actions, including cancel, back and Escape', () => {
   assert.equal(actionFor('\u0003', { ctrl: true, name: 'c' }), 'cancel');
-  assert.equal(actionFor('\u001b', { name: 'escape' }), 'cancel');
+  assert.equal(actionFor('\u001b', { name: 'escape' }), 'escape');
+  assert.equal(actionFor(undefined, { name: 'left' }), 'back');
+  assert.equal(actionFor('\u007f', { name: 'backspace' }), 'back');
   assert.equal(actionFor(undefined, { name: 'up' }), 'up');
   assert.equal(actionFor('j', { name: 'j' }), 'down');
   assert.equal(actionFor(' ', { name: 'space' }), 'toggle');
