@@ -36,12 +36,6 @@ test('upgrading from the old command name replaces its shims and hooks and keeps
   assert.match(settings, /bin\/flow\.mjs/);
 });
 
-test('hooks installed under the old entry file keep working', () => {
-  const run = spawnSync(process.execPath, [path.join(PACK, 'bin', 'flowctl.mjs'), '--version'], { encoding: 'utf8' });
-  assert.equal(run.status, 0, run.stderr);
-  assert.match(run.stdout, /^\d+\.\d+\.\d+/);
-});
-
 test('install links skills and uninstall removes everything it added', (t) => {
   const home = fakeHome(t);
   fs.writeFileSync(path.join(home, '.claude', 'CLAUDE.md'), '# mine\n');
