@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { renderBanner } from '../lib/banner.mjs';
+import { findCommand, renderAll, renderCommand, renderOverview, renderUnknown } from '../lib/help.mjs';
+import { pickLanguage } from '../lib/lang.mjs';
 import { cmdProvenance } from '../lib/provenance.mjs';
 import { realDir } from '../lib/util.mjs';
+import { isSetUp, runWizard, runsFromNpxCache } from '../lib/wizard.mjs';
 import {
   HOME,
   cmdCheck,
@@ -31,67 +35,6 @@ import {
 import { cmdWorktree } from '../lib/wtcmd.mjs';
 import { cmdFingerprint, cmdOnboard, cmdUser } from '../lib/onboard.mjs';
 import { cmdSecrets } from '../lib/secretscmd.mjs';
-
-const HELP = `flow — công cụ của FLOW Harness (nguồn: ${HOME})
-
-Khung
-  fingerprint [--path dir] [--json]   đo quy ước của MỘT dự án bất kỳ (chỉ đọc, không cần .flow)
-  onboard · onboard decide <Dn> <số> · onboard refresh   điều cần chốt khi join / đo lại quy ước
-  user · user set <khoá> <giá trị>      sở thích của bạn (~/.agent-flow/user.json) — lớp DƯỚI quy ước dự án
-  where                         flow root, profile, repo, số rules/memory/plan
-  init [--stack dotnet,react@src/web] [--gates a,b|all] [--comments off|no-new|unit|file] [--commit-body free|trailers-only]
-       [--context CONTEXT.md] [--track-harness] [--name X] [--force]
-  exclude [--dry]               ghi .git/info/exclude cho mọi repo + kiểm check-ignore
-  doctor                        sức khoẻ: exclude, tệp quá lớn, index lệch, plan sai chỗ
-  reindex                       sinh lại INDEX.md của rules / memory / plans
-
-Tri thức
-  rules find [--path p]… [--changed|--staged] [--tag t] [--text q] [--json]
-  rules new --title "…" [--type invariant|trap|convention|decision] [--severity critical|high|medium|low]
-            [--scope "glob,glob"] [--tags a,b] [--origin "…"] [--enforced "…"]
-  rules list | rules show R-0001
-  memory [--text q] | memory new --type user|feedback|project|reference --name "…" --desc "…"
-  context missing [--changed|--staged|--path p] [--strict] | context new <dir> | context stale | context list
-  gates [--path p]… [--changed] [--print explore|execute|post|all] [--all]
-  sync [--mark]                 module nào cần cập nhật ngữ cảnh kể từ mốc đồng bộ
-
-Cài đặt
-  version                                   in phiên bản (cũng nhận --version, -v)
-  install [--hooks] [--no-bridge] [--dry]   nối skill vào các agent CLI, chèn khối chỉ dẫn, cài hook nếu chọn
-  uninstall [--dry]                         gỡ mọi thứ install đã thêm (chạy trước npm uninstall)
-
-Ranh giới dự án và bộ skill
-  provenance --against <thư mục> [--against …] [--limit n]   đo đoạn trùng nguyên văn với dự án (chỉ đọc)
-
-Bí mật & thông tin cá nhân (không bao giờ in giá trị)
-  secrets scan [--staged|--base r|--history|--local] [--path dir] [--env tệp] [--no-pii] [--no-gitleaks] [--json]
-  secrets env <tệp>             xem .env an toàn: tên khoá, độ dài, host
-  secrets watch --label x < tệp theo dõi giá trị / tên riêng (chỉ lưu hash)
-  secrets allow <#mã> --reason "…" [--debt]   phán xử sau khi đã MỞ RA XEM
-
-DRY
-  dup find <ý đồ>               đã có hàm nào làm việc này chưa (tên đồng nghĩa + API cốt lõi)
-  dup check [--staged|--base r] chặn bản trùng MỚI so với baseline (cũng chạy trong flow check)
-  dup baseline [--refresh]      ghi nợ trùng hiện có — chỉ chặn cái mới
-  dup report [--path dir]       tầm soát (chạy được trên repo chưa có .flow)
-  dup allow <key> --reason "…"   ngoại lệ có lý do
-
-Quy trình
-  plan new <slug> [--title "…"] [--branch b] [--repos a,b] | plan status <slug> <STATUS> [--force] | plan list [--all] | plan show <slug>
-  plan decisions <slug> [--json]   quyết định đang mở, in sẵn dạng hỏi trên chat (exit 1 nếu còn)
-  plan decide <slug> <Dn> "<lựa chọn>" [--by "…"]   ghi câu trả lời vào biên bản §0
-  task next|list <slug> · task done <slug> <Tn> [--commit sha] · task add <slug> "…" · task note <slug> "…" [--kind helper|friction|decision]
-  runbook new acceptance|ops|data-op|release|handoff <slug> [--plan p] · runbook lint <slug> [--after] · runbook list
-  wt new <slug> [--repo r] [--base ref] · wt list · wt context <slug> · wt done <slug> [--force]   một việc song song = một worktree
-  verify [--dry] [--full] [--only a,b] [--staged] [--all]
-  check [--staged] [--base ref] [--all]    chú thích mới · lộ harness · tệp harness sắp vào git · customChecks
-  commitmsg [file] | commitmsg --message "…"   tiêu đề Conventional Commits tiếng Anh cho người đọc · thân chỉ trailer
-  prmsg <tệp> | prmsg --message "…"          mô tả PR/MR: tiếng Việt có dấu, ngắn, không kỹ thuật, không lộ harness
-  hook pretool                  PreToolUse hook (stdin JSON) chặn ghi lên nhánh được bảo vệ
-  hook session                  SessionStart hook: nạp lại trạng thái flow (plan, task kế, quyết định chờ) sau khởi động / nén
-  selftest                      tự kiểm bộ skill theo chuẩn (description, độ dài, liên kết một cấp, khuôn)
-
-Phạm vi mặc định: repo chứa thư mục hiện tại; --all = mọi repo của workspace.`;
 
 function parseArgs(argv) {
   const opts = { _: [] };
@@ -144,6 +87,7 @@ async function main() {
     args = rest.slice(1);
   }
   const opts = normalize(parseArgs(args));
+  if (cmd && findCommand(cmd) && (rest.includes('--help') || rest.includes('-h'))) return showHelp(cmd, opts);
   switch (cmd) {
     case 'where':
       return cmdWhere(cwd);
@@ -207,20 +151,49 @@ async function main() {
     case '-v':
       console.log(packageVersion());
       return 0;
+    case 'setup':
+      return runWizard({ packageDir: HOME, version: packageVersion(), cwd, lang: opts.lang });
+    case undefined:
     case 'help':
     case '--help':
-    case '-h':
-    case undefined: {
-      const banner = renderBanner({ version: packageVersion(), isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
+    case '-h': {
+      const terminal = !!(process.stdin.isTTY && process.stdout.isTTY);
+      if (cmd === undefined && terminal && (runsFromNpxCache(HOME) || !isSetUp(os.homedir()))) {
+        return runWizard({ packageDir: HOME, version: packageVersion(), cwd, lang: opts.lang });
+      }
+      const topic = opts._[0];
+      if (topic || opts.all) return showHelp(topic, opts);
+      const banner = renderBanner({ lang: pickLanguage(process.env, opts.lang), version: packageVersion(), cwd, isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
       if (banner) console.log(banner);
-      console.log(HELP);
-      return 0;
+      return showHelp(undefined, opts);
     }
     default:
-      console.log(`Lệnh lạ: ${cmd}\n`);
-      console.log(HELP);
+      console.log(renderUnknown(cmd, { lang: pickLanguage(process.env, opts.lang) }));
       return 1;
   }
+}
+
+function showHelp(topic, opts) {
+  const style = {
+    lang: pickLanguage(process.env, opts.lang),
+    useColor: !!process.stdout.isTTY && !('NO_COLOR' in process.env),
+    columns: process.stdout.columns || 80,
+  };
+  if (opts.all) {
+    console.log(renderAll(style));
+    return 0;
+  }
+  if (!topic) {
+    console.log(renderOverview(style));
+    return 0;
+  }
+  const command = findCommand(topic);
+  if (!command) {
+    console.log(renderUnknown(topic, style));
+    return 1;
+  }
+  console.log(renderCommand(command, style));
+  return 0;
 }
 
 main()

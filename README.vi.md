@@ -16,17 +16,51 @@ Dùng được với Claude Code, Codex và Gemini CLI. Cần Node.js 20 trở l
 ## Cài đặt
 
 ```bash
-npm install -g flow-harness
-flow install
+npx flow-harness
 ```
 
-`npm install` chỉ đặt gói lên máy và không đụng tới cấu hình agent. `flow install` mới nối skill và chèn khối chỉ dẫn, nên bạn thấy rõ lúc nào cấu hình bị đổi.
+Trình hướng dẫn hỏi bạn dùng agent và skill nào, liệt kê mọi thay đổi và không ghi gì cho tới khi bạn xác nhận. Sau đó nó cài gói toàn cục để lệnh `flow` luôn dùng được. Nhấn `Ctrl+C` bất cứ lúc nào để thoát mà không đổi gì.
+
+Muốn tự cài thì dùng cách dưới. `npm install` chỉ đặt gói lên máy và không chạy script cài đặt nào:
+
+```bash
+npm install -g flow-harness
+flow setup
+```
+
+Với script và CI, `flow install` không hỏi gì:
+
+```bash
+flow install --agents claude,codex --skills core
+```
 
 | Cờ của `flow install` | Tác dụng |
 |---|---|
+| `--scope user\|project` | Toàn máy (mặc định) hoặc chỉ repo hiện tại. `--dir path` để chọn repo khác |
+| `--agents a,b` | Chỉ các agent này: `claude`, `codex`, `gemini`. Mặc định: tất cả |
+| `--skills a,b` | Chỉ các skill này, hoặc `core` cho quy trình chính. Luôn có `flow`, và skill không chọn sẽ bị gỡ. Mặc định: tất cả |
 | `--dry` | Xem sẽ làm gì, không ghi |
 | `--no-bridge` | Không ghi cầu nối vào tệp chỉ dẫn toàn cục của agent |
 | `--hooks` | Tuỳ chọn: cài thêm hook nạp lại trạng thái và chặn ghi vào nhánh được bảo vệ, chặn đọc `.env` |
+
+### Toàn máy hay một dự án
+
+Mặc định skill có tác dụng ở mọi repo trên máy. Muốn chỉ dùng trong một repo, chọn **Chỉ dự án này** trong `flow setup`, hoặc chạy trong repo đó:
+
+```bash
+flow install --scope project
+flow uninstall --scope project
+```
+
+Lệnh `flow` vẫn được cài trên máy ở cả hai phạm vi, vì skill cần gọi nó. Bản cài cho dự án là của riêng bạn: mọi tệp nó thêm đều nằm trong `.git/info/exclude`, nên `git status` vẫn sạch và đồng đội không thấy thay đổi gì. Nó không bao giờ sửa tệp mà git đang theo dõi.
+
+| Công cụ | Skill | Chỉ dẫn | Hook |
+|---|---|---|---|
+| Claude Code | `.claude/skills/` | `CLAUDE.local.md` | `.claude/settings.local.json` |
+| Codex | `.agents/skills/` | không có | không có |
+| Gemini CLI | `.agents/skills/`, chỉ nạp khi thư mục được tin cậy | không có | không có |
+
+Codex và Gemini CLI không có khối chỉ dẫn ở phạm vi dự án, vì chúng không có tệp chỉ dẫn riêng nào mà vẫn giữ `AGENTS.md` hay `GEMINI.md` của đội có hiệu lực, và FLOW không sửa các tệp đó. Lệnh slash của hai công cụ này chỉ có khi cài toàn máy.
 
 ## Bắt đầu
 
@@ -127,7 +161,7 @@ Xem đủ cú pháp bằng `flow help`. Các nhóm chính:
 
 | Nhóm | Lệnh |
 |---|---|
-| Khung | `fingerprint`, `onboard`, `user`, `where`, `init`, `exclude`, `doctor`, `reindex` |
+| Khung | `setup`, `install`, `uninstall`, `fingerprint`, `onboard`, `user`, `where`, `init`, `exclude`, `doctor`, `reindex` |
 | Tri thức | `rules`, `memory`, `context`, `gates`, `sync` |
 | Bí mật | `secrets scan`, `secrets env`, `secrets watch`, `secrets allow` |
 | DRY | `dup find`, `dup check`, `dup baseline`, `dup report`, `dup allow` |
