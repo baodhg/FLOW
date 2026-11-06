@@ -7,7 +7,7 @@ Bộ skill trung tính: không gắn với stack, ngôn ngữ hay kiểu commit 
 ## Cài và gỡ
 
 ```
-npm install -g github:baodhg/FLOW
+npm install -g flowharness
 flow install
 flow install --hooks
 ```
@@ -20,7 +20,7 @@ Bước `npm install` chỉ đặt gói lên máy và không đụng tới cấu
 | `--no-bridge` | Không ghi cầu nối vào tệp chỉ dẫn toàn cục của agent |
 | `--hooks` | Cài thêm hook |
 
-Nâng cấp: chạy lại `npm install -g github:baodhg/FLOW` rồi `flow install`.
+Nâng cấp: chạy lại `npm install -g flowharness` rồi `flow install`.
 
 Gỡ: chạy `flow uninstall` trước, rồi `npm uninstall -g flowharness`. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
 
