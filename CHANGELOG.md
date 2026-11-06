@@ -2,6 +2,13 @@
 
 Theo định dạng [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) và đánh số theo [SemVer](https://semver.org/spec/v2.0.0.html). Trước 1.0.0, bản MINOR có thể chứa thay đổi phá vỡ và sẽ được ghi rõ ở đây.
 
+## [0.3.0](https://github.com/baodhg/FLOW/compare/v0.2.0...v0.3.0) (2026-11-06)
+
+
+### Features
+
+* add a guided setup with a branded welcome ([8101ffa](https://github.com/baodhg/FLOW/commit/8101ffafaf65ddf7000d6ec66d3b48c4cd3ab7db))
+
 ## [0.2.0] - 2026-11-06
 
 ### Thay đổi
