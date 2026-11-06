@@ -2,8 +2,6 @@
 
 Theo định dạng [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) và đánh số theo [SemVer](https://semver.org/spec/v2.0.0.html). Trước 1.0.0, bản MINOR có thể chứa thay đổi phá vỡ và sẽ được ghi rõ ở đây.
 
-## [Chưa phát hành]
-
 ## [0.2.0] - 2026-11-06
 
 ### Thay đổi
