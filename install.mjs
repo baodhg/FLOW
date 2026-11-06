@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { renderBanner } from './lib/banner.mjs';
 import { writeExcludeBlock } from './lib/excludes.mjs';
 import { pickLanguage } from './lib/lang.mjs';
-import { git, gitPath, gitRoot } from './lib/util.mjs';
+import { escapeRegExp, git, gitPath, gitRoot } from './lib/util.mjs';
 import { CORE_SKILLS, runsFromNpxCache } from './lib/wizard.mjs';
 
 const HOME_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -350,12 +350,8 @@ function writeShims() {
   if (!onPath && !UNINSTALL && !VIA_PACKAGE_MANAGER) log(`  ⚠️ ${BIN_DIR} chưa có trong PATH — thêm vào, hoặc gọi: node "${entry}"`);
 }
 
-function escapeRe(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 function bridges() {
-  const re = new RegExp(`\\n*${escapeRe(BEGIN_PREFIX)}[^\\n]*[\\s\\S]*?${escapeRe(END)}\\n?`);
+  const re = new RegExp(`\\n*${escapeRegExp(BEGIN_PREFIX)}[^\\n]*[\\s\\S]*?${escapeRegExp(END)}\\n?`);
   for (const b of BRIDGE_FILES) {
     if (!agentOn(b.agent)) continue;
     if (!fs.existsSync(path.dirname(b.file))) {
