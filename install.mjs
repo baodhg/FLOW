@@ -4,19 +4,72 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderBanner } from './lib/banner.mjs';
+import { writeExcludeBlock } from './lib/excludes.mjs';
+import { pickLanguage } from './lib/lang.mjs';
+import { git, gitPath, gitRoot } from './lib/util.mjs';
+import { CORE_SKILLS, runsFromNpxCache } from './lib/wizard.mjs';
 
 const HOME_DIR = path.dirname(fileURLToPath(import.meta.url));
 const USER = os.homedir();
-const args = new Set(process.argv.slice(2));
+const argv = process.argv.slice(2);
+const args = new Set(argv);
 const UNINSTALL = args.has('--uninstall');
 const NO_BRIDGE = args.has('--no-bridge');
 const DRY = args.has('--dry');
 const HOOKS = args.has('--hooks');
+const KNOWN_AGENTS = ['claude', 'codex', 'gemini'];
 
-const HOOK_TARGETS = [
-  { label: 'Claude Code', file: path.join(USER, '.claude', 'settings.json'), session: 'startup|clear|compact', pretool: 'Bash|PowerShell|Read|Edit|Write|MultiEdit' },
-  { label: 'Codex', file: path.join(USER, '.codex', 'hooks.json'), session: '', pretool: '' },
-];
+function listFlag(name) {
+  const inline = argv.find((a) => a.startsWith(`--${name}=`));
+  if (inline) return inline.slice(name.length + 3).split(',').filter(Boolean);
+  const at = argv.indexOf(`--${name}`);
+  if (at < 0) return null;
+  const value = argv[at + 1];
+  return value && !value.startsWith('--') ? value.split(',').filter(Boolean) : [];
+}
+
+function valueFlag(name) {
+  const inline = argv.find((a) => a.startsWith(`--${name}=`));
+  if (inline) return inline.slice(name.length + 3);
+  const at = argv.indexOf(`--${name}`);
+  return at >= 0 ? argv[at + 1] : undefined;
+}
+
+const CHOSEN_AGENTS = listFlag('agents');
+const CHOSEN_SKILLS = listFlag('skills');
+const SCOPE = valueFlag('scope') || 'user';
+const PROJECT = SCOPE === 'project';
+const PROJECT_ROOT = PROJECT ? gitRoot(path.resolve(valueFlag('dir') || process.cwd())) : null;
+const BASE = PROJECT_ROOT || USER;
+const PROJECT_EXCLUDE_BEGIN = '# >>> flow-harness project install';
+const PROJECT_EXCLUDE_END = '# <<< flow-harness project install';
+const PROJECT_EXCLUDES = ['/.claude/skills/flow', '/.claude/skills/flow-*', '/.agents/skills/flow', '/.agents/skills/flow-*', '/CLAUDE.local.md', '/.claude/settings.local.json'];
+
+function isTracked(file) {
+  return git(BASE, ['ls-files', '--error-unmatch', path.relative(BASE, file).split(path.sep).join('/')]).ok;
+}
+
+function agentOn(name) {
+  return UNINSTALL || !CHOSEN_AGENTS || CHOSEN_AGENTS.includes(name);
+}
+
+function anyAgentOn(names) {
+  return names.some(agentOn);
+}
+
+function resolvedSkills() {
+  if (!CHOSEN_SKILLS) return null;
+  const expanded = CHOSEN_SKILLS.flatMap((name) => (name === 'core' ? CORE_SKILLS : [name]));
+  return new Set(['flow', ...expanded]);
+}
+
+const CLAUDE_MATCHERS = { session: 'startup|clear|compact', pretool: 'Bash|PowerShell|Read|Edit|Write|MultiEdit' };
+const HOOK_TARGETS = PROJECT
+  ? [{ agent: 'claude', label: 'Claude Code', file: path.join(BASE, '.claude', 'settings.local.json'), ...CLAUDE_MATCHERS }]
+  : [
+      { agent: 'claude', label: 'Claude Code', file: path.join(USER, '.claude', 'settings.json'), ...CLAUDE_MATCHERS },
+      { agent: 'codex', label: 'Codex', file: path.join(USER, '.codex', 'hooks.json'), session: '', pretool: '' },
+    ];
 
 const MARK = 'agent-flow command';
 
@@ -32,12 +85,14 @@ function commandTargets(s) {
   const ask = `Dùng skill \`${s.name}\` của FLOW (nếu chưa nạp: đọc ${path.join(s.src, 'SKILL.md').replace(/\\/g, '/')}) và làm đúng theo nó.`;
   return [
     {
+      agent: 'gemini',
       label: 'Gemini',
       root: path.join(USER, '.gemini'),
       file: path.join(USER, '.gemini', 'commands', 'flow', `${short}.toml`),
       body: `description = "${desc}"\nprompt = """\n${ask}\nYêu cầu của người dùng: {{args}}\n"""\n`,
     },
     {
+      agent: 'codex',
       label: 'Codex',
       root: path.join(USER, '.codex'),
       file: path.join(USER, '.codex', 'prompts', `${s.name}.md`),
@@ -47,11 +102,13 @@ function commandTargets(s) {
 }
 
 function commands() {
+  const wanted = resolvedSkills();
   for (const s of skills()) {
+    const removing = UNINSTALL || (wanted && !wanted.has(s.name));
     for (const t of commandTargets(s)) {
-      if (!fs.existsSync(t.root)) continue;
+      if (!fs.existsSync(t.root) || !agentOn(t.agent)) continue;
       const cur = fs.existsSync(t.file) ? fs.readFileSync(t.file, 'utf8') : null;
-      if (UNINSTALL) {
+      if (removing) {
         if (cur !== null && cur.includes(MARK)) {
           if (!DRY) fs.rmSync(t.file);
           log(`  − ${t.label}: ${t.file}`);
@@ -82,7 +139,14 @@ function isOurHook(h) {
 
 function hooks() {
   for (const t of HOOK_TARGETS) {
-    if (!fs.existsSync(path.dirname(t.file))) {
+    if (!agentOn(t.agent)) continue;
+    if (UNINSTALL && !fs.existsSync(t.file)) continue;
+    if (PROJECT && isTracked(t.file)) {
+      log(`  ! ${t.label}: ${t.file} đang được git theo dõi — BỎ QUA, không sửa tệp của đội`);
+      continue;
+    }
+    if (PROJECT && !DRY) fs.mkdirSync(path.dirname(t.file), { recursive: true });
+    if (!PROJECT && !fs.existsSync(path.dirname(t.file))) {
       log(`  · ${t.label}: không có ${path.dirname(t.file)} — bỏ qua`);
       continue;
     }
@@ -107,13 +171,19 @@ function hooks() {
       if (cleaned.length) json.hooks[ev] = cleaned;
       else delete json.hooks[ev];
     }
+    if (!Object.keys(json.hooks).length) delete json.hooks;
+    if (PROJECT && UNINSTALL && !Object.keys(json).length) {
+      if (!DRY) fs.rmSync(t.file);
+      log(`  − ${t.label}: ${t.file}`);
+      continue;
+    }
     const next = `${JSON.stringify(json, null, 2)}\n`;
     if (next === raw) {
       log(`  = ${t.label}: ${t.file}`);
       continue;
     }
     if (!DRY) {
-      if (raw && raw !== '{}' && !fs.existsSync(`${t.file}.pre-agent-flow.bak`)) fs.writeFileSync(`${t.file}.pre-agent-flow.bak`, raw);
+      if (!PROJECT && raw && raw !== '{}' && !fs.existsSync(`${t.file}.pre-agent-flow.bak`)) fs.writeFileSync(`${t.file}.pre-agent-flow.bak`, raw);
       fs.writeFileSync(t.file, next);
     }
     log(`  ${UNINSTALL ? '−' : '+'} ${t.label}: ${t.file}`);
@@ -121,15 +191,17 @@ function hooks() {
 }
 
 const SKILL_TARGETS = [
-  { label: 'Claude Code', dir: path.join(USER, '.claude', 'skills') },
-  { label: 'Codex + Gemini (~/.agents/skills)', dir: path.join(USER, '.agents', 'skills') },
+  { agents: ['claude'], label: 'Claude Code', dir: path.join(BASE, '.claude', 'skills') },
+  { agents: ['codex', 'gemini'], label: 'Codex + Gemini (.agents/skills)', dir: path.join(BASE, '.agents', 'skills') },
 ];
 
-const BRIDGE_FILES = [
-  { label: 'Claude Code', file: path.join(USER, '.claude', 'CLAUDE.md') },
-  { label: 'Codex', file: path.join(USER, '.codex', 'AGENTS.md') },
-  { label: 'Gemini', file: path.join(USER, '.gemini', 'GEMINI.md') },
-];
+const BRIDGE_FILES = PROJECT
+  ? [{ agent: 'claude', label: 'Claude Code', file: path.join(BASE, 'CLAUDE.local.md') }]
+  : [
+      { agent: 'claude', label: 'Claude Code', file: path.join(USER, '.claude', 'CLAUDE.md') },
+      { agent: 'codex', label: 'Codex', file: path.join(USER, '.codex', 'AGENTS.md') },
+      { agent: 'gemini', label: 'Gemini', file: path.join(USER, '.gemini', 'GEMINI.md') },
+    ];
 
 const BIN_DIR = path.join(USER, '.local', 'bin');
 const VIA_PACKAGE_MANAGER = /[\\/]node_modules[\\/]/.test(HOME_DIR);
@@ -188,19 +260,22 @@ function skills() {
 }
 
 function linkSkills() {
+  const wanted = resolvedSkills();
   for (const t of SKILL_TARGETS) {
-    if (!DRY) fs.mkdirSync(t.dir, { recursive: true });
+    if (!anyAgentOn(t.agents)) continue;
+    if (!DRY && !UNINSTALL) fs.mkdirSync(t.dir, { recursive: true });
     let unchanged = 0;
     let changed = 0;
+    let removed = 0;
     for (const s of skills()) {
       const dst = path.join(t.dir, s.name);
       const st = lstat(dst);
       const current = !!st && isCurrentLink(dst, s.src);
       const stale = !!st && !current && isStaleLink(dst, s.name);
-      if (UNINSTALL) {
+      if (UNINSTALL || (wanted && !wanted.has(s.name))) {
         if (current || stale) {
           if (!DRY) fs.rmSync(dst, { recursive: false, force: true });
-          changed++;
+          removed++;
         }
         continue;
       }
@@ -216,8 +291,8 @@ function linkSkills() {
       if (!DRY) fs.symlinkSync(s.src, dst, 'junction');
       changed++;
     }
-    if (UNINSTALL) log(`  − ${t.label}: gỡ ${changed} skill`);
-    else log(`  ✓ ${t.label}: nối mới ${changed} · giữ nguyên ${unchanged} skill`);
+    if (UNINSTALL) log(`  − ${t.label}: gỡ ${removed} skill`);
+    else log(`  ✓ ${t.label}: nối mới ${changed} · giữ nguyên ${unchanged} · gỡ ${removed} skill`);
   }
 }
 
@@ -282,8 +357,13 @@ function escapeRe(s) {
 function bridges() {
   const re = new RegExp(`\\n*${escapeRe(BEGIN_PREFIX)}[^\\n]*[\\s\\S]*?${escapeRe(END)}\\n?`);
   for (const b of BRIDGE_FILES) {
+    if (!agentOn(b.agent)) continue;
     if (!fs.existsSync(path.dirname(b.file))) {
       log(`  · ${b.label}: không có ${path.dirname(b.file)} — bỏ qua`);
+      continue;
+    }
+    if (PROJECT && isTracked(b.file)) {
+      log(`  ! ${b.label}: ${b.file} đang được git theo dõi — BỎ QUA, không sửa tệp của đội`);
       continue;
     }
     const cur = fs.existsSync(b.file) ? fs.readFileSync(b.file, 'utf8') : '';
@@ -292,6 +372,11 @@ function bridges() {
       next = cur.replace(re, '\n');
       if (next.trim() === cur.trim()) continue;
       next = next.replace(/\n{3,}$/, '\n\n').replace(/\s+$/, '\n');
+      if (PROJECT && !next.trim()) {
+        if (!DRY) fs.rmSync(b.file);
+        log(`  − ${b.label}: ${b.file}`);
+        continue;
+      }
     } else if (re.test(cur)) {
       next = cur.replace(re, `\n\n${BRIDGE}`);
     } else {
@@ -302,32 +387,79 @@ function bridges() {
       continue;
     }
     if (!DRY) {
-      if (cur && !fs.existsSync(`${b.file}.pre-agent-flow.bak`)) fs.writeFileSync(`${b.file}.pre-agent-flow.bak`, cur);
+      if (!PROJECT && cur && !fs.existsSync(`${b.file}.pre-agent-flow.bak`)) fs.writeFileSync(`${b.file}.pre-agent-flow.bak`, cur);
       fs.writeFileSync(b.file, next);
     }
     log(`  ${UNINSTALL || NO_BRIDGE ? '−' : '+'} ${b.label}: ${b.file}`);
   }
 }
 
+function updateProjectExcludes() {
+  const file = gitPath(BASE, 'info/exclude');
+  if (!file) return;
+  const changed = writeExcludeBlock(file, { begin: PROJECT_EXCLUDE_BEGIN, end: PROJECT_EXCLUDE_END, patterns: UNINSTALL ? [] : PROJECT_EXCLUDES, dryRun: DRY });
+  log(`  ${changed ? (UNINSTALL ? '−' : '+') : '='} ${file}`);
+}
+
+function removeEmptyProjectFolders() {
+  if (DRY) return;
+  for (const relative of [['.claude', 'skills'], ['.claude'], ['.agents', 'skills'], ['.agents']]) {
+    try {
+      fs.rmdirSync(path.join(BASE, ...relative));
+    } catch {
+      continue;
+    }
+  }
+}
+
+function rejectBadInput() {
+  const badAgents = (CHOSEN_AGENTS || []).filter((name) => !KNOWN_AGENTS.includes(name));
+  const known = new Set(skills().map((s) => s.name));
+  const badSkills = (CHOSEN_SKILLS || []).filter((name) => name !== 'core' && !known.has(name));
+  const problems = [];
+  if (SCOPE !== 'user' && SCOPE !== 'project') problems.push(`--scope chỉ nhận user hoặc project, không nhận: ${SCOPE}.`);
+  if (PROJECT && !PROJECT_ROOT) problems.push('--scope project cần chạy trong một git repo. Hãy cd vào repo, hoặc dùng --dir <thư mục>.');
+  if (CHOSEN_AGENTS && !CHOSEN_AGENTS.length) problems.push(`--agents cần ít nhất một trong: ${KNOWN_AGENTS.join(', ')}.`);
+  if (badAgents.length) problems.push(`Agent lạ: ${badAgents.join(', ')}. Dùng: ${KNOWN_AGENTS.join(', ')}.`);
+  if (CHOSEN_SKILLS && !CHOSEN_SKILLS.length) problems.push('--skills cần ít nhất một tên, hoặc core.');
+  if (badSkills.length) problems.push(`Skill lạ: ${badSkills.join(', ')}.`);
+  if (!UNINSTALL && !DRY && runsFromNpxCache(HOME_DIR)) {
+    problems.push('Không nối skill từ cache của npx vì thư mục đó là tạm. Chạy npx flow-harness không kèm tham số, hoặc cài toàn cục: npm install -g flow-harness.');
+  }
+  for (const problem of problems) log(problem);
+  return problems.length > 0;
+}
+
+if (rejectBadInput()) process.exit(2);
+
 const { version: VERSION } = JSON.parse(fs.readFileSync(path.join(HOME_DIR, 'package.json'), 'utf8'));
-const banner = UNINSTALL ? '' : renderBanner({ version: VERSION, isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
+const banner = UNINSTALL ? '' : renderBanner({ lang: pickLanguage(process.env, undefined), version: VERSION, cwd: process.cwd(), isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
 if (banner) log(banner);
 log(`${UNINSTALL ? 'Gỡ cài đặt' : 'Cài đặt'} từ ${HOME_DIR}${DRY ? ' (dry-run)' : ''}`);
+if (PROJECT) log(`Phạm vi: chỉ dự án ${BASE}`);
 log('Skill:');
 linkSkills();
-log('Lệnh flow:');
-writeShims();
-log('Lệnh slash (Gemini /flow:<x> · Codex /prompts:flow-<x>; Claude Code gọi thẳng /flow-<x>):');
-commands();
-log('Khối chỉ dẫn toàn cục:');
+if (!PROJECT) {
+  log('Lệnh flow:');
+  writeShims();
+  log('Lệnh slash (Gemini /flow:<x> · Codex /prompts:flow-<x>; Claude Code gọi thẳng /flow-<x>):');
+  commands();
+}
+log(PROJECT ? 'Khối chỉ dẫn riêng của bạn trong dự án:' : 'Khối chỉ dẫn toàn cục:');
 bridges();
 if (HOOKS || UNINSTALL) {
   log('Hook (SessionStart nạp lại trạng thái · PreToolUse chặn ghi nhánh được bảo vệ):');
   hooks();
 }
+if (PROJECT) {
+  log('Giữ ngoài git (.git/info/exclude):');
+  updateProjectExcludes();
+  if (UNINSTALL) removeEmptyProjectFolders();
+}
 if (!UNINSTALL) {
   log('');
   log('Xong. Mở phiên CLI mới để thấy skill (Gemini: /skills reload). Kiểm: `flow help`.');
+  if (PROJECT) log('Gỡ khỏi dự án này: flow uninstall --scope project');
   if (!HOOKS) log('Hook chưa cài. Tự chạy: flow install --hooks (SessionStart nạp lại trạng thái sau nén · PreToolUse chặn ghi nhánh được bảo vệ, cho Claude Code + Codex).');
   if (VIA_PACKAGE_MANAGER) log('Trước khi gỡ gói: chạy flow uninstall, rồi npm uninstall -g flow-harness.');
 }
