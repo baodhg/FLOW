@@ -31,6 +31,13 @@ test('the mascot rows are even so the details stay aligned', () => {
   assert.equal(new Set(MASCOT.map((row) => row.length)).size, 1);
 });
 
+test('the mascot draws two complete waves, the lower one identical to the upper', () => {
+  assert.equal(MASCOT.length, 6);
+  assert.deepEqual(MASCOT.slice(3), MASCOT.slice(0, 3));
+  const plain = renderBanner({ ...terminal, env: { NO_COLOR: '' } }).split('\n');
+  for (const row of MASCOT) assert.ok(plain.some((line) => line.startsWith(row.trimEnd())), row);
+});
+
 test('colour depth follows what the terminal supports', () => {
   assert.match(renderBanner({ ...terminal, env: { COLORTERM: 'truecolor' } }), /38;2;/);
   assert.match(renderBanner({ ...terminal, env: {} }), /38;5;/);
