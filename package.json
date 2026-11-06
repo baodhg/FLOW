@@ -38,7 +38,7 @@
     "SECURITY.md"
   ],
   "scripts": {
-    "test": "node --test test/core.test.mjs test/v2.test.mjs test/v3.test.mjs test/v4.test.mjs test/v5.test.mjs test/provenance.test.mjs test/install.test.mjs test/banner.test.mjs test/leaks.test.mjs"
+    "test": "node --test test/core.test.mjs test/v2.test.mjs test/v3.test.mjs test/v4.test.mjs test/v5.test.mjs test/provenance.test.mjs test/install.test.mjs test/banner.test.mjs test/leaks.test.mjs test/prompts.test.mjs test/wizard.test.mjs"
   },
   "engines": {
     "node": ">=20"

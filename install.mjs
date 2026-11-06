@@ -4,18 +4,48 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderBanner } from './lib/banner.mjs';
+import { pickLanguage } from './lib/lang.mjs';
+import { CORE_SKILLS, runsFromNpxCache } from './lib/wizard.mjs';
 
 const HOME_DIR = path.dirname(fileURLToPath(import.meta.url));
 const USER = os.homedir();
-const args = new Set(process.argv.slice(2));
+const argv = process.argv.slice(2);
+const args = new Set(argv);
 const UNINSTALL = args.has('--uninstall');
 const NO_BRIDGE = args.has('--no-bridge');
 const DRY = args.has('--dry');
 const HOOKS = args.has('--hooks');
+const KNOWN_AGENTS = ['claude', 'codex', 'gemini'];
+
+function listFlag(name) {
+  const inline = argv.find((a) => a.startsWith(`--${name}=`));
+  if (inline) return inline.slice(name.length + 3).split(',').filter(Boolean);
+  const at = argv.indexOf(`--${name}`);
+  if (at < 0) return null;
+  const value = argv[at + 1];
+  return value && !value.startsWith('--') ? value.split(',').filter(Boolean) : [];
+}
+
+const CHOSEN_AGENTS = listFlag('agents');
+const CHOSEN_SKILLS = listFlag('skills');
+
+function agentOn(name) {
+  return UNINSTALL || !CHOSEN_AGENTS || CHOSEN_AGENTS.includes(name);
+}
+
+function anyAgentOn(names) {
+  return names.some(agentOn);
+}
+
+function resolvedSkills() {
+  if (!CHOSEN_SKILLS) return null;
+  const expanded = CHOSEN_SKILLS.flatMap((name) => (name === 'core' ? CORE_SKILLS : [name]));
+  return new Set(['flow', ...expanded]);
+}
 
 const HOOK_TARGETS = [
-  { label: 'Claude Code', file: path.join(USER, '.claude', 'settings.json'), session: 'startup|clear|compact', pretool: 'Bash|PowerShell|Read|Edit|Write|MultiEdit' },
-  { label: 'Codex', file: path.join(USER, '.codex', 'hooks.json'), session: '', pretool: '' },
+  { agent: 'claude', label: 'Claude Code', file: path.join(USER, '.claude', 'settings.json'), session: 'startup|clear|compact', pretool: 'Bash|PowerShell|Read|Edit|Write|MultiEdit' },
+  { agent: 'codex', label: 'Codex', file: path.join(USER, '.codex', 'hooks.json'), session: '', pretool: '' },
 ];
 
 const MARK = 'agent-flow command';
@@ -32,12 +62,14 @@ function commandTargets(s) {
   const ask = `Dùng skill \`${s.name}\` của FLOW (nếu chưa nạp: đọc ${path.join(s.src, 'SKILL.md').replace(/\\/g, '/')}) và làm đúng theo nó.`;
   return [
     {
+      agent: 'gemini',
       label: 'Gemini',
       root: path.join(USER, '.gemini'),
       file: path.join(USER, '.gemini', 'commands', 'flow', `${short}.toml`),
       body: `description = "${desc}"\nprompt = """\n${ask}\nYêu cầu của người dùng: {{args}}\n"""\n`,
     },
     {
+      agent: 'codex',
       label: 'Codex',
       root: path.join(USER, '.codex'),
       file: path.join(USER, '.codex', 'prompts', `${s.name}.md`),
@@ -47,11 +79,13 @@ function commandTargets(s) {
 }
 
 function commands() {
+  const wanted = resolvedSkills();
   for (const s of skills()) {
+    const removing = UNINSTALL || (wanted && !wanted.has(s.name));
     for (const t of commandTargets(s)) {
-      if (!fs.existsSync(t.root)) continue;
+      if (!fs.existsSync(t.root) || !agentOn(t.agent)) continue;
       const cur = fs.existsSync(t.file) ? fs.readFileSync(t.file, 'utf8') : null;
-      if (UNINSTALL) {
+      if (removing) {
         if (cur !== null && cur.includes(MARK)) {
           if (!DRY) fs.rmSync(t.file);
           log(`  − ${t.label}: ${t.file}`);
@@ -82,6 +116,7 @@ function isOurHook(h) {
 
 function hooks() {
   for (const t of HOOK_TARGETS) {
+    if (!agentOn(t.agent)) continue;
     if (!fs.existsSync(path.dirname(t.file))) {
       log(`  · ${t.label}: không có ${path.dirname(t.file)} — bỏ qua`);
       continue;
@@ -121,14 +156,14 @@ function hooks() {
 }
 
 const SKILL_TARGETS = [
-  { label: 'Claude Code', dir: path.join(USER, '.claude', 'skills') },
-  { label: 'Codex + Gemini (~/.agents/skills)', dir: path.join(USER, '.agents', 'skills') },
+  { agents: ['claude'], label: 'Claude Code', dir: path.join(USER, '.claude', 'skills') },
+  { agents: ['codex', 'gemini'], label: 'Codex + Gemini (~/.agents/skills)', dir: path.join(USER, '.agents', 'skills') },
 ];
 
 const BRIDGE_FILES = [
-  { label: 'Claude Code', file: path.join(USER, '.claude', 'CLAUDE.md') },
-  { label: 'Codex', file: path.join(USER, '.codex', 'AGENTS.md') },
-  { label: 'Gemini', file: path.join(USER, '.gemini', 'GEMINI.md') },
+  { agent: 'claude', label: 'Claude Code', file: path.join(USER, '.claude', 'CLAUDE.md') },
+  { agent: 'codex', label: 'Codex', file: path.join(USER, '.codex', 'AGENTS.md') },
+  { agent: 'gemini', label: 'Gemini', file: path.join(USER, '.gemini', 'GEMINI.md') },
 ];
 
 const BIN_DIR = path.join(USER, '.local', 'bin');
@@ -188,19 +223,22 @@ function skills() {
 }
 
 function linkSkills() {
+  const wanted = resolvedSkills();
   for (const t of SKILL_TARGETS) {
-    if (!DRY) fs.mkdirSync(t.dir, { recursive: true });
+    if (!anyAgentOn(t.agents)) continue;
+    if (!DRY && !UNINSTALL) fs.mkdirSync(t.dir, { recursive: true });
     let unchanged = 0;
     let changed = 0;
+    let removed = 0;
     for (const s of skills()) {
       const dst = path.join(t.dir, s.name);
       const st = lstat(dst);
       const current = !!st && isCurrentLink(dst, s.src);
       const stale = !!st && !current && isStaleLink(dst, s.name);
-      if (UNINSTALL) {
+      if (UNINSTALL || (wanted && !wanted.has(s.name))) {
         if (current || stale) {
           if (!DRY) fs.rmSync(dst, { recursive: false, force: true });
-          changed++;
+          removed++;
         }
         continue;
       }
@@ -216,8 +254,8 @@ function linkSkills() {
       if (!DRY) fs.symlinkSync(s.src, dst, 'junction');
       changed++;
     }
-    if (UNINSTALL) log(`  − ${t.label}: gỡ ${changed} skill`);
-    else log(`  ✓ ${t.label}: nối mới ${changed} · giữ nguyên ${unchanged} skill`);
+    if (UNINSTALL) log(`  − ${t.label}: gỡ ${removed} skill`);
+    else log(`  ✓ ${t.label}: nối mới ${changed} · giữ nguyên ${unchanged} · gỡ ${removed} skill`);
   }
 }
 
@@ -282,6 +320,7 @@ function escapeRe(s) {
 function bridges() {
   const re = new RegExp(`\\n*${escapeRe(BEGIN_PREFIX)}[^\\n]*[\\s\\S]*?${escapeRe(END)}\\n?`);
   for (const b of BRIDGE_FILES) {
+    if (!agentOn(b.agent)) continue;
     if (!fs.existsSync(path.dirname(b.file))) {
       log(`  · ${b.label}: không có ${path.dirname(b.file)} — bỏ qua`);
       continue;
@@ -309,8 +348,26 @@ function bridges() {
   }
 }
 
+function rejectBadInput() {
+  const badAgents = (CHOSEN_AGENTS || []).filter((name) => !KNOWN_AGENTS.includes(name));
+  const known = new Set(skills().map((s) => s.name));
+  const badSkills = (CHOSEN_SKILLS || []).filter((name) => name !== 'core' && !known.has(name));
+  const problems = [];
+  if (CHOSEN_AGENTS && !CHOSEN_AGENTS.length) problems.push(`--agents cần ít nhất một trong: ${KNOWN_AGENTS.join(', ')}.`);
+  if (badAgents.length) problems.push(`Agent lạ: ${badAgents.join(', ')}. Dùng: ${KNOWN_AGENTS.join(', ')}.`);
+  if (CHOSEN_SKILLS && !CHOSEN_SKILLS.length) problems.push('--skills cần ít nhất một tên, hoặc core.');
+  if (badSkills.length) problems.push(`Skill lạ: ${badSkills.join(', ')}.`);
+  if (!UNINSTALL && !DRY && runsFromNpxCache(HOME_DIR)) {
+    problems.push('Không nối skill từ cache của npx vì thư mục đó là tạm. Chạy npx flow-harness không kèm tham số, hoặc cài toàn cục: npm install -g flow-harness.');
+  }
+  for (const problem of problems) log(problem);
+  return problems.length > 0;
+}
+
+if (rejectBadInput()) process.exit(2);
+
 const { version: VERSION } = JSON.parse(fs.readFileSync(path.join(HOME_DIR, 'package.json'), 'utf8'));
-const banner = UNINSTALL ? '' : renderBanner({ version: VERSION, isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
+const banner = UNINSTALL ? '' : renderBanner({ lang: pickLanguage(process.env, undefined), version: VERSION, cwd: process.cwd(), isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
 if (banner) log(banner);
 log(`${UNINSTALL ? 'Gỡ cài đặt' : 'Cài đặt'} từ ${HOME_DIR}${DRY ? ' (dry-run)' : ''}`);
 log('Skill:');

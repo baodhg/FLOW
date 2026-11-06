@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { renderBanner } from '../lib/banner.mjs';
+import { pickLanguage } from '../lib/lang.mjs';
 import { cmdProvenance } from '../lib/provenance.mjs';
 import { realDir } from '../lib/util.mjs';
+import { isSetUp, runWizard, runsFromNpxCache } from '../lib/wizard.mjs';
 import {
   HOME,
   cmdCheck,
@@ -57,7 +60,9 @@ Tri thức
 
 Cài đặt
   version                                   in phiên bản (cũng nhận --version, -v)
-  install [--hooks] [--no-bridge] [--dry]   nối skill vào các agent CLI, chèn khối chỉ dẫn, cài hook nếu chọn
+  setup [--lang en|vi]                      hướng dẫn cài từng bước trong terminal
+  install [--agents a,b] [--skills a,b|core] [--hooks] [--no-bridge] [--dry]
+                                            cài không hỏi: nối skill, chèn khối chỉ dẫn, cài hook nếu chọn
   uninstall [--dry]                         gỡ mọi thứ install đã thêm (chạy trước npm uninstall)
 
 Ranh giới dự án và bộ skill
@@ -207,11 +212,17 @@ async function main() {
     case '-v':
       console.log(packageVersion());
       return 0;
+    case 'setup':
+      return runWizard({ packageDir: HOME, version: packageVersion(), cwd, lang: opts.lang });
+    case undefined:
     case 'help':
     case '--help':
-    case '-h':
-    case undefined: {
-      const banner = renderBanner({ version: packageVersion(), isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
+    case '-h': {
+      const terminal = !!(process.stdin.isTTY && process.stdout.isTTY);
+      if (cmd === undefined && terminal && (runsFromNpxCache(HOME) || !isSetUp(os.homedir()))) {
+        return runWizard({ packageDir: HOME, version: packageVersion(), cwd, lang: opts.lang });
+      }
+      const banner = renderBanner({ lang: pickLanguage(process.env, opts.lang), version: packageVersion(), cwd, isTTY: !!process.stdout.isTTY, columns: process.stdout.columns || 80, env: process.env });
       if (banner) console.log(banner);
       console.log(HELP);
       return 0;

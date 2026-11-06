@@ -13,22 +13,38 @@ It is neutral by design: it assumes no stack, language or commit style, and meas
 
 Works with Claude Code, Codex and Gemini CLI. Requires Node.js 20 or later.
 
-> **Language:** the skills and CLI messages are currently written in Vietnamese. Agents can follow them whatever language you chat in, but you will read Vietnamese output from the `flow` command. This project is at `0.x`, so behaviour may still change.
+> **Language:** the guided setup follows your system language, English or Vietnamese. The skills and other CLI messages are currently written in Vietnamese. Agents can follow them whatever language you chat in, but you will read Vietnamese output from most `flow` commands. This project is at `0.x`, so behaviour may still change.
 
 ## Install
 
 ```bash
-npm install -g flow-harness
-flow install
+npx flow-harness
 ```
 
-`npm install` only places the package on your machine and runs no install scripts. `flow install` is the step that links the skills and adds an instruction block to your agents' global instruction files, so you can see exactly when your configuration changes. Files are backed up before the first write.
+The guided setup asks which agents and skills you want, shows every change it will make, and writes nothing until you confirm. It then installs the package globally so the `flow` command stays available. Press `Ctrl+C` at any point to leave without changes.
+
+Prefer to install it yourself? `npm install` only places the package on your machine and runs no install scripts:
+
+```bash
+npm install -g flow-harness
+flow setup
+```
+
+For scripts and CI, `flow install` never asks anything:
+
+```bash
+flow install --agents claude,codex --skills core
+```
 
 | `flow install` flag | Effect |
 |---|---|
+| `--agents a,b` | Only these agents: `claude`, `codex`, `gemini`. Default: all |
+| `--skills a,b` | Only these skills, or `core` for the main workflow. `flow` is always included, and skills you leave out are removed. Default: all |
 | `--dry` | Show what would change without writing anything |
 | `--no-bridge` | Skip the block in the global instruction files |
 | `--hooks` | Optional: add hooks that restore state after context compaction, and block writes to protected branches and direct reads of `.env` files |
+
+Global instruction files and agent settings are backed up before the first write.
 
 ## Get started
 
@@ -127,7 +143,7 @@ Run `flow help` for the full syntax. The main groups are:
 
 | Group | Commands |
 |---|---|
-| Setup | `install`, `uninstall`, `fingerprint`, `onboard`, `user`, `where`, `init`, `exclude`, `doctor`, `reindex` |
+| Setup | `setup`, `install`, `uninstall`, `fingerprint`, `onboard`, `user`, `where`, `init`, `exclude`, `doctor`, `reindex` |
 | Knowledge | `rules`, `memory`, `context`, `gates`, `sync` |
 | Secrets | `secrets scan`, `secrets env`, `secrets watch`, `secrets allow` |
 | Duplicates | `dup find`, `dup check`, `dup baseline`, `dup report`, `dup allow` |
