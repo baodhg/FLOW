@@ -2,6 +2,13 @@
 
 Theo định dạng [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) và đánh số theo [SemVer](https://semver.org/spec/v2.0.0.html). Trước 1.0.0, bản MINOR có thể chứa thay đổi phá vỡ và sẽ được ghi rõ ở đây.
 
+## [0.3.3](https://github.com/baodhg/FLOW/compare/v0.3.2...v0.3.3) (2026-11-06)
+
+
+### Bug Fixes
+
+* show the English readme on the npm page ([b629821](https://github.com/baodhg/FLOW/commit/b629821c56e3a83630a8dc27b3f04a6197415651))
+
 ## [0.3.2](https://github.com/baodhg/FLOW/compare/v0.3.1...v0.3.2) (2026-11-06)
 
 
