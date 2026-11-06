@@ -121,6 +121,13 @@ test('regressions: real-looking values that are not secrets: weak dev values, or
   ]) assert.deepEqual(secretRules(file, text), [], `${file}: ${text}`);
   assert.ok(secretRules('src/config.ts', `const apiToken = "${FAKE.field}";`).length, 'a random value in production code is still flagged');
   assert.ok(secretRules('.env', 'DB_PASSWORD=correct-horse-battery').length, 'a word-like password in a real env file is still flagged');
+  for (const token of ['kF9xQ2mZ7vB4nL8wR1tY6uP3sD5gH0jA', 'aB3xY9qW2eR7tU1iO5pL8kJ4hG6fD0sZ', 'Xq7Zp2Lm9Kw4Rt8Yb1Nc6Vd3Fg5Hj0Ss', 'mNbVcXzLkJhGfDsApOiUyTrEwQ']) {
+    assert.ok(secretRules('.env', `DB_PASSWORD=${token}`).length, `${token} in an env file`);
+    assert.ok(secretRules('src/config.ts', `const apiToken = "${token}";`).length, `${token} in code`);
+  }
+  for (const name of ['resetPassword', 'NextAuthSessionToken', 'accessTokenValue', 'userPasswordHash2', 'OAuth2ClientSecret']) {
+    assert.deepEqual(secretRules('src/auth.ts', `const tokenKey = "${name}";`), [], name);
+  }
   const strong = envSecretValues(`DB_PASSWORD=${FAKE.field}\n`);
   const hit = (text) => scanEnvValuesInLine({ file: 'a.md', line: 1, text }, strong).length;
   assert.equal(hit(`mật khẩu là ${FAKE.field} nhé`), 1);
