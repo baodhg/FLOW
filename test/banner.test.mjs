@@ -82,7 +82,7 @@ test('install stays free of art and colour when its output is captured', () => {
 test('running flow with no arguments outside a terminal prints help and never waits for input', () => {
   const run = spawnSync(process.execPath, [CLI], { encoding: 'utf8', input: '' });
   assert.equal(run.status, 0);
-  assert.match(run.stdout, /flow setup|setup \[--lang/);
+  assert.match(run.stdout, /^\s+setup\s+\S/m);
 });
 
 test('flow setup outside a terminal explains itself instead of hanging', () => {
