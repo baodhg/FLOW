@@ -2,6 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/flow-harness)](https://www.npmjs.com/package/flow-harness)
 [![CI](https://github.com/baodhg/FLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/baodhg/FLOW/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/baodhg/FLOW/badge)](https://scorecard.dev/viewer/?uri=github.com/baodhg/FLOW)
 [![License: MIT](https://img.shields.io/npm/l/flow-harness)](LICENSE)
 
 English · [Tiếng Việt](README.vi.md)
