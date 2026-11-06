@@ -2,6 +2,13 @@
 
 Theo định dạng [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) và đánh số theo [SemVer](https://semver.org/spec/v2.0.0.html). Trước 1.0.0, bản MINOR có thể chứa thay đổi phá vỡ và sẽ được ghi rõ ở đây.
 
+## [0.3.2](https://github.com/baodhg/FLOW/compare/v0.3.1...v0.3.2) (2026-11-06)
+
+
+### Bug Fixes
+
+* stop the secret scanner from skipping random tokens ([609ff48](https://github.com/baodhg/FLOW/commit/609ff4816051c1caac947f532d2165dac1cbc748))
+
 ## [0.3.1](https://github.com/baodhg/FLOW/compare/v0.3.0...v0.3.1) (2026-11-06)
 
 
