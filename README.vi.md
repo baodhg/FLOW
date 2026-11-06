@@ -36,11 +36,31 @@ flow install --agents claude,codex --skills core
 
 | Cờ của `flow install` | Tác dụng |
 |---|---|
+| `--scope user\|project` | Toàn máy (mặc định) hoặc chỉ repo hiện tại. `--dir path` để chọn repo khác |
 | `--agents a,b` | Chỉ các agent này: `claude`, `codex`, `gemini`. Mặc định: tất cả |
 | `--skills a,b` | Chỉ các skill này, hoặc `core` cho quy trình chính. Luôn có `flow`, và skill không chọn sẽ bị gỡ. Mặc định: tất cả |
 | `--dry` | Xem sẽ làm gì, không ghi |
 | `--no-bridge` | Không ghi cầu nối vào tệp chỉ dẫn toàn cục của agent |
 | `--hooks` | Tuỳ chọn: cài thêm hook nạp lại trạng thái và chặn ghi vào nhánh được bảo vệ, chặn đọc `.env` |
+
+### Toàn máy hay một dự án
+
+Mặc định skill có tác dụng ở mọi repo trên máy. Muốn chỉ dùng trong một repo, chọn **Chỉ dự án này** trong `flow setup`, hoặc chạy trong repo đó:
+
+```bash
+flow install --scope project
+flow uninstall --scope project
+```
+
+Lệnh `flow` vẫn được cài trên máy ở cả hai phạm vi, vì skill cần gọi nó. Bản cài cho dự án là của riêng bạn: mọi tệp nó thêm đều nằm trong `.git/info/exclude`, nên `git status` vẫn sạch và đồng đội không thấy thay đổi gì. Nó không bao giờ sửa tệp mà git đang theo dõi.
+
+| Công cụ | Skill | Chỉ dẫn | Hook |
+|---|---|---|---|
+| Claude Code | `.claude/skills/` | `CLAUDE.local.md` | `.claude/settings.local.json` |
+| Codex | `.agents/skills/` | không có | không có |
+| Gemini CLI | `.agents/skills/`, chỉ nạp khi thư mục được tin cậy | không có | không có |
+
+Codex và Gemini CLI không có khối chỉ dẫn ở phạm vi dự án, vì chúng không có tệp chỉ dẫn riêng nào mà vẫn giữ `AGENTS.md` hay `GEMINI.md` của đội có hiệu lực, và FLOW không sửa các tệp đó. Lệnh slash của hai công cụ này chỉ có khi cài toàn máy.
 
 ## Bắt đầu
 

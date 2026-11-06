@@ -38,6 +38,7 @@ flow install --agents claude,codex --skills core
 
 | `flow install` flag | Effect |
 |---|---|
+| `--scope user\|project` | Machine-wide, the default, or only the current repository. `--dir path` picks another repository |
 | `--agents a,b` | Only these agents: `claude`, `codex`, `gemini`. Default: all |
 | `--skills a,b` | Only these skills, or `core` for the main workflow. `flow` is always included, and skills you leave out are removed. Default: all |
 | `--dry` | Show what would change without writing anything |
@@ -45,6 +46,25 @@ flow install --agents claude,codex --skills core
 | `--hooks` | Optional: add hooks that restore state after context compaction, and block writes to protected branches and direct reads of `.env` files |
 
 Global instruction files and agent settings are backed up before the first write.
+
+### Machine-wide or one project
+
+By default the skills work in every repository on your machine. To use them in one repository only, choose **Only this project** in `flow setup`, or run this inside the repository:
+
+```bash
+flow install --scope project
+flow uninstall --scope project
+```
+
+The `flow` command stays installed on your machine either way, because the skills call it. A project install is private to you: every file it adds is listed in `.git/info/exclude`, so `git status` stays clean and your team sees no change. It never edits a file git already tracks.
+
+| Tool | Skills | Instructions | Hooks |
+|---|---|---|---|
+| Claude Code | `.claude/skills/` | `CLAUDE.local.md` | `.claude/settings.local.json` |
+| Codex | `.agents/skills/` | none | none |
+| Gemini CLI | `.agents/skills/`, loaded only in a trusted folder | none | none |
+
+Codex and Gemini CLI get no instruction block in project scope. They have no private instruction file that keeps your team's `AGENTS.md` or `GEMINI.md` in effect, and FLOW will not edit those files. Slash commands for those tools are only added by a machine-wide install.
 
 ## Get started
 
