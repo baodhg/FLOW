@@ -32,7 +32,8 @@ test('colour depth follows what the terminal supports', () => {
 test('a narrow terminal or a name the font cannot draw falls back to one plain line', () => {
   const narrow = renderBanner({ ...terminal, columns: 20, version: '0.1.0' });
   assert.doesNotMatch(narrow, /██/);
-  assert.match(narrow, /FLOW/);
+  assert.match(narrow, /FLOW Harness/);
+  assert.match(renderBanner({ ...terminal, env: { NO_COLOR: '' } }), /FLOW Harness · /);
   assert.match(narrow, /v0\.1\.0/);
   assert.doesNotMatch(renderBanner({ ...terminal, brand: 'Flow_1' }), /██/);
 });
