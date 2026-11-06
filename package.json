@@ -1,6 +1,6 @@
 {
   "name": "flowharness",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "FLOW Harness: a workflow skill pack and CLI that take coding agents from explore through plan and execute to post, with each repo's context kept local.",
   "license": "MIT",
   "author": "baodhg",

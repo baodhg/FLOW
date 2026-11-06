@@ -1,30 +1,54 @@
 # FLOW Harness
 
+[![npm](https://img.shields.io/npm/v/flowharness)](https://www.npmjs.com/package/flowharness)
+[![CI](https://github.com/baodhg/FLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/baodhg/FLOW/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/npm/l/flowharness)](LICENSE)
+
 FLOW Harness, gọi tắt FLOW, là bộ skill quy trình cho coding agent, kèm công cụ dòng lệnh `flow`. Bộ này đưa agent đi qua điều tra, kế hoạch, thi hành, đóng việc, và giữ kiến thức của từng dự án ngay trong dự án đó.
 
 Bộ skill trung tính: không gắn với stack, ngôn ngữ hay kiểu commit nào. Quy ước được đo từ dự án.
 
-## Cài và gỡ
+Dùng được với Claude Code, Codex và Gemini CLI. Cần Node.js 20 trở lên.
 
-```
+## Cài đặt
+
+```bash
 npm install -g flowharness
 flow install
-flow install --hooks
 ```
 
-Bước `npm install` chỉ đặt gói lên máy và không đụng tới cấu hình agent. `flow install` mới nối skill và chèn khối chỉ dẫn, nên bạn thấy rõ lúc nào cấu hình bị đổi.
+`npm install` chỉ đặt gói lên máy và không đụng tới cấu hình agent. `flow install` mới nối skill và chèn khối chỉ dẫn, nên bạn thấy rõ lúc nào cấu hình bị đổi.
 
-| Cờ | Tác dụng |
+| Cờ của `flow install` | Tác dụng |
 |---|---|
 | `--dry` | Xem sẽ làm gì, không ghi |
 | `--no-bridge` | Không ghi cầu nối vào tệp chỉ dẫn toàn cục của agent |
-| `--hooks` | Cài thêm hook |
+| `--hooks` | Tuỳ chọn: cài thêm hook nạp lại trạng thái và chặn ghi vào nhánh được bảo vệ, chặn đọc `.env` |
 
-Nâng cấp: chạy lại `npm install -g flowharness` rồi `flow install`.
+## Bắt đầu
 
-Gỡ: chạy `flow uninstall` trước, rồi `npm uninstall -g flowharness`. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
+Trong repo muốn áp dụng:
 
-Chạy từ bản clone: `node install.mjs` nhận cùng các cờ, thêm `--uninstall`.
+```bash
+flow init
+flow where
+```
+
+`flow init` đo quy ước của repo và tạo `.flow/`. Thư mục này chỉ nằm trên máy bạn và không vào commit. Sau đó bạn làm việc với agent như thường; agent nạp skill `flow` để biết phải đọc gì trước.
+
+## Nâng cấp và gỡ
+
+```bash
+npm install -g flowharness@latest
+flow install
+```
+
+Khi gỡ, chạy `flow uninstall` trước. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
+
+```bash
+flow uninstall
+npm uninstall -g flowharness
+```
 
 ### Trùng tên lệnh
 
@@ -94,7 +118,7 @@ Mỗi module có thêm `CONTEXT.md` cạnh mã, cũng không commit.
 
 Gate mẫu nằm ở `<gói>/presets/gates/`, khuôn tài liệu ở `<gói>/templates/`.
 
-## flow
+## Lệnh
 
 Xem đủ cú pháp bằng `flow help`. Các nhóm chính:
 
@@ -122,7 +146,9 @@ Chi tiết ở skill `flow-learn`.
 
 ## Phát triển
 
-```
+Từ bản clone, `node install.mjs` nhận cùng các cờ của `flow install`, thêm `--uninstall`.
+
+```bash
 npm test
 flow selftest
 flow provenance --against <dự án>
