@@ -1,6 +1,6 @@
-# FLOW
+# FLOW Harness
 
-Bộ skill quy trình cho coding agent, kèm công cụ dòng lệnh `flow`. Bộ này đưa agent đi qua điều tra, kế hoạch, thi hành, đóng việc, và giữ kiến thức của từng dự án ngay trong dự án đó.
+FLOW Harness, gọi tắt FLOW, là bộ skill quy trình cho coding agent, kèm công cụ dòng lệnh `flow`. Bộ này đưa agent đi qua điều tra, kế hoạch, thi hành, đóng việc, và giữ kiến thức của từng dự án ngay trong dự án đó.
 
 Bộ skill trung tính: không gắn với stack, ngôn ngữ hay kiểu commit nào. Quy ước được đo từ dự án.
 
@@ -22,7 +22,7 @@ Bước `npm install` chỉ đặt gói lên máy và không đụng tới cấu
 
 Nâng cấp: chạy lại `npm install -g github:baodhg/FLOW` rồi `flow install`.
 
-Gỡ: chạy `flow uninstall` trước, rồi `npm uninstall -g @baodhg/flow`. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
+Gỡ: chạy `flow uninstall` trước, rồi `npm uninstall -g flowharness`. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
 
 Chạy từ bản clone: `node install.mjs` nhận cùng các cờ, thêm `--uninstall`.
 

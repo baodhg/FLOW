@@ -32,7 +32,7 @@ import { cmdWorktree } from '../lib/wtcmd.mjs';
 import { cmdFingerprint, cmdOnboard, cmdUser } from '../lib/onboard.mjs';
 import { cmdSecrets } from '../lib/secretscmd.mjs';
 
-const HELP = `flow — công cụ của bộ skill FLOW (nguồn: ${HOME})
+const HELP = `flow — công cụ của FLOW Harness (nguồn: ${HOME})
 
 Khung
   fingerprint [--path dir] [--json]   đo quy ước của MỘT dự án bất kỳ (chỉ đọc, không cần .flow)
