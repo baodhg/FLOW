@@ -2,7 +2,6 @@
 
 [![npm](https://img.shields.io/npm/v/flow-harness)](https://www.npmjs.com/package/flow-harness)
 [![CI](https://github.com/baodhg/FLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/baodhg/FLOW/actions/workflows/ci.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/baodhg/FLOW/badge)](https://scorecard.dev/viewer/?uri=github.com/baodhg/FLOW)
 [![License: MIT](https://img.shields.io/npm/l/flow-harness)](LICENSE)
 
 English · [Tiếng Việt](README.vi.md)
@@ -14,6 +13,18 @@ It is neutral by design: it assumes no stack, language or commit style, and meas
 Works with Claude Code, Codex and Gemini CLI. Requires Node.js 20 or later.
 
 > **Language:** the guided setup follows your system language, English or Vietnamese. The skills and other CLI messages are currently written in Vietnamese. Agents can follow them whatever language you chat in, but you will read Vietnamese output from most `flow` commands. This project is at `0.x`, so behaviour may still change.
+
+## Why you can trust it
+
+This is a young project from one maintainer, so here is what you can check for yourself before installing:
+
+- **No npm dependencies and no install scripts.** Nothing else is pulled in, and `npm install` runs no code from this package.
+- **Verifiable builds.** Releases are built and published by GitHub Actions with [provenance](https://docs.npmjs.com/generating-provenance-statements/), linking the package to the exact public commit. After installing, run `npm audit signatures` in your project to verify it.
+- **No telemetry.** The package sends no data anywhere.
+- **Nothing changes without you seeing it.** The guided setup lists every change before applying it, and `flow install --dry` previews the same work.
+- **Easy to try and remove.** `flow install --scope project` affects one repository and stays out of git; `flow uninstall --scope project` removes it again.
+
+See [SECURITY.md](SECURITY.md) for what the tool touches and its limits.
 
 ## Install
 
