@@ -25,6 +25,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           package-manager-cache: false
+      - run: npm ci --ignore-scripts
       - run: npm test
       - run: node bin/flow.mjs selftest
       - name: Install the packed tarball and run it
@@ -47,4 +48,5 @@ jobs:
           node-version: 24
           package-manager-cache: false
       - run: node .github/scripts/check-npm-version.mjs
+      - run: npm ci --ignore-scripts
       - run: npm test
