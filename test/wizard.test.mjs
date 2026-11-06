@@ -267,6 +267,43 @@ test('a failed global install stops before touching any agent configuration', as
   assert.equal(fs.existsSync(path.join(home, '.claude', 'skills')), false);
 });
 
+test('the built-in runner applies the choices without freezing the progress line', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const { code, text } = await play([ENTER, ENTER, ENTER, ENTER], { home, env: homeEnv(home) });
+  assert.equal(code, 0, text);
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'skills', 'flow', 'SKILL.md')));
+  assert.match(text, /Linked 14 skills/);
+  assert.doesNotMatch(text, /DEP0190|DeprecationWarning/);
+});
+
+test('a slow install shows a live progress line while it works, then the result', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const slow = (value) => new Promise((resolve) => setTimeout(() => resolve(value), 220));
+  const runner = {
+    installGlobal: () => slow({ status: 0 }),
+    globalRoot: () => slow(path.join(home, 'global')),
+    install: () => slow({ status: 0, stdout: '' }),
+  };
+  const { code, text } = await play([ENTER, ENTER, ENTER, ENTER], { home, env: { ...homeEnv(home), WT_SESSION: '1' }, runner, viaNpx: true });
+  assert.equal(code, 0, text);
+  assert.ok((text.match(/\r\x1b\[K/g) || []).length > 6, 'the line is redrawn while waiting');
+  assert.match(text, /Installing the package globally\.\.\./);
+  assert.match(text, /Linking skills and updating settings\.\.\./);
+  assert.match(text, /Installed the package globally/);
+  assert.match(text, /Linked 14 skills/);
+  assert.ok(text.indexOf('Installed the package globally') < text.indexOf('Linked 14 skills'));
+});
+
+test('a failed setup step ends the progress line with the reason', async (t) => {
+  const home = fakeHome(t, ['.claude']);
+  const runner = { install: async () => ({ status: 3, stdout: '', stderr: 'disk full' }) };
+  const { code, text } = await play([ENTER, ENTER, ENTER, ENTER], { home, env: homeEnv(home), runner });
+  assert.equal(code, 3);
+  assert.match(text, /Setup failed:/);
+  assert.match(text, /disk full/);
+  assert.doesNotMatch(text, /Linked 14 skills/);
+});
+
 test('files the pack does not own are reported instead of overwritten', async (t) => {
   const home = fakeHome(t, ['.claude']);
   const foreign = path.join(home, '.claude', 'skills', 'flow-plan');

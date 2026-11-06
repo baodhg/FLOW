@@ -14,6 +14,7 @@ import {
   renderSelect,
   runPrompt,
   selectValue,
+  startSpinner,
   symbolsFor,
   visibleLength,
   wrapText,
@@ -101,6 +102,37 @@ test('long lines are cut to the terminal width so redraws stay on one row', () =
   assert.equal(visibleLength(line), 100);
   assert.ok(visibleLength(fitLine(line, 40)) <= 40);
   assert.equal(fitLine('short', 40), 'short');
+});
+
+function capturedOutput() {
+  const output = new PassThrough();
+  let written = '';
+  output.on('data', (d) => (written += d));
+  return { output, text: () => written };
+}
+
+test('a spinner animates until it stops, then leaves one result line and the cursor back', async () => {
+  const { output, text } = capturedOutput();
+  const spinner = startSpinner({ output, label: 'Working', symbols: modern, useColor: false, interval: 5 });
+  await new Promise((r) => setTimeout(r, 60));
+  spinner.succeed('Finished');
+  const frames = new Set(modern.spinner.filter((frame) => text().includes(`${frame} Working`)));
+  assert.ok(frames.size >= 3, `saw ${frames.size} frames`);
+  assert.ok(text().endsWith('\r\x1b[K  ✓ Finished\n\x1b[?25h'));
+  const after = text().length;
+  await new Promise((r) => setTimeout(r, 30));
+  assert.equal(text().length, after, 'nothing is drawn after stopping');
+  assert.equal(process.listenerCount('SIGINT'), 0, 'the interrupt handler is removed');
+});
+
+test('a failed spinner marks the failure and consoles without Unicode still animate', async () => {
+  const { output, text } = capturedOutput();
+  const ascii = symbolsFor({}, 'win32');
+  const spinner = startSpinner({ output, label: 'Working', symbols: ascii, useColor: false, interval: 5 });
+  await new Promise((r) => setTimeout(r, 30));
+  spinner.fail('Stopped');
+  assert.match(text(), /[|/\\-] Working/);
+  assert.ok(text().includes('  x Stopped\n'));
 });
 
 function promptHarness(initial, extra = {}) {
