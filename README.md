@@ -1,169 +1,161 @@
 # FLOW Harness
 
-[![npm](https://img.shields.io/npm/v/flowharness)](https://www.npmjs.com/package/flowharness)
+[![npm](https://img.shields.io/npm/v/flow-harness)](https://www.npmjs.com/package/flow-harness)
 [![CI](https://github.com/baodhg/FLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/baodhg/FLOW/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/npm/l/flowharness)](LICENSE)
+[![License: MIT](https://img.shields.io/npm/l/flow-harness)](LICENSE)
 
-FLOW Harness, gọi tắt FLOW, là bộ skill quy trình cho coding agent, kèm công cụ dòng lệnh `flow`. Bộ này đưa agent đi qua điều tra, kế hoạch, thi hành, đóng việc, và giữ kiến thức của từng dự án ngay trong dự án đó.
+English · [Tiếng Việt](README.vi.md)
 
-Bộ skill trung tính: không gắn với stack, ngôn ngữ hay kiểu commit nào. Quy ước được đo từ dự án.
+A workflow skill pack and CLI for coding agents. FLOW Harness, or FLOW for short, takes an agent from explore through plan and execute to post, and keeps what it learns about each project inside that project.
 
-Dùng được với Claude Code, Codex và Gemini CLI. Cần Node.js 20 trở lên.
+It is neutral by design: it assumes no stack, language or commit style, and measures conventions from the repository instead.
 
-## Cài đặt
+Works with Claude Code, Codex and Gemini CLI. Requires Node.js 20 or later.
+
+> **Language:** the skills and CLI messages are currently written in Vietnamese. Agents can follow them whatever language you chat in, but you will read Vietnamese output from the `flow` command. This project is at `0.x`, so behaviour may still change.
+
+## Install
 
 ```bash
-npm install -g flowharness
+npm install -g flow-harness
 flow install
 ```
 
-`npm install` chỉ đặt gói lên máy và không đụng tới cấu hình agent. `flow install` mới nối skill và chèn khối chỉ dẫn, nên bạn thấy rõ lúc nào cấu hình bị đổi.
+`npm install` only places the package on your machine and runs no install scripts. `flow install` is the step that links the skills and adds an instruction block to your agents' global instruction files, so you can see exactly when your configuration changes. Files are backed up before the first write.
 
-| Cờ của `flow install` | Tác dụng |
+| `flow install` flag | Effect |
 |---|---|
-| `--dry` | Xem sẽ làm gì, không ghi |
-| `--no-bridge` | Không ghi cầu nối vào tệp chỉ dẫn toàn cục của agent |
-| `--hooks` | Tuỳ chọn: cài thêm hook nạp lại trạng thái và chặn ghi vào nhánh được bảo vệ, chặn đọc `.env` |
+| `--dry` | Show what would change without writing anything |
+| `--no-bridge` | Skip the block in the global instruction files |
+| `--hooks` | Optional: add hooks that restore state after context compaction, and block writes to protected branches and direct reads of `.env` files |
 
-## Bắt đầu
+## Get started
 
-Trong repo muốn áp dụng:
+In a repository you want to use it with:
 
 ```bash
 flow init
 flow where
 ```
 
-`flow init` đo quy ước của repo và tạo `.flow/`. Thư mục này chỉ nằm trên máy bạn và không vào commit. Sau đó bạn làm việc với agent như thường; agent nạp skill `flow` để biết phải đọc gì trước.
+`flow init` measures the repository's conventions and creates `.flow/`. That directory stays on your machine: it is excluded through `.git/info/exclude`, so it never reaches a commit. Then work with your agent as usual; it loads the `flow` skill to learn what to read first.
 
-## Nâng cấp và gỡ
+## Upgrade and uninstall
 
 ```bash
-npm install -g flowharness@latest
+npm install -g flow-harness@latest
 flow install
 ```
 
-Khi gỡ, chạy `flow uninstall` trước. Làm ngược thứ tự thì skill và khối chỉ dẫn còn nằm lại trong cấu hình agent.
+To uninstall, run `flow uninstall` first. In the opposite order, the skills and the instruction block stay behind in your agent configuration.
 
 ```bash
 flow uninstall
-npm uninstall -g flowharness
+npm uninstall -g flow-harness
 ```
 
-### Trùng tên lệnh
+### Command name conflict
 
-Trình kiểm kiểu Flow (`flow-bin`) cũng dùng lệnh `flow`, và cả hai cùng có `flow check`.
+The Flow type checker (`flow-bin`) also provides a `flow` command, and both have `flow check`.
 
-- Trong script của `package.json`, `flow` là bản trong `node_modules/.bin` của dự án.
-- Trong shell, `flow` là bản đứng trước trong `PATH`. Kiểm tra bằng `flow --version`.
-- Đã cài `flow-bin` toàn cục thì `npm install -g` báo `EEXIST`. Gỡ một trong hai bản, vì npm không cài đè lệnh của gói khác.
+- In `package.json` scripts, `flow` resolves to the project's `node_modules/.bin`.
+- In a shell, `flow` is whichever comes first on your `PATH`. Check with `flow --version`.
+- If `flow-bin` is installed globally, `npm install -g` fails with `EEXIST`. Remove one of the two, because npm will not overwrite another package's command.
 
-## Mô hình trung tính theo lớp
+## How conventions are resolved
 
-Mỗi giá trị trong `.flow/profile.json` có nguồn ghi ở `_sources`. Lớp sau thắng lớp trước:
+Every value in `.flow/profile.json` records its source in `_sources`. Later layers win:
 
-1. Mặc định trung tính của bộ skill
-2. Sở thích người dùng ở `~/.agent-flow/user.json`
-3. Quy ước đo được và tệp chỉ dẫn của dự án
-4. Điều người dùng chốt
+1. The pack's neutral defaults
+2. Your preferences in `~/.agent-flow/user.json`
+3. Conventions measured from the repository, and its own instruction files
+4. Decisions you make when asked
 
-Thứ đội nhìn thấy theo đội, thứ chỉ người dùng thấy theo người dùng. Một dự án trắng nhận sở thích của bạn làm quy ước; một repo đã có đội giữ nguyên quy ước của đội.
+What your team can see follows the team, and what only you can see follows you. A blank project adopts your preferences as its conventions, while a repository with an existing team keeps the team's.
 
-## Các skill
+## Skills
 
-| Skill | Việc |
+| Skill | Purpose |
 |---|---|
-| `flow` | Cửa vào: định vị, thứ tự đọc, cỡ task, nguyên tắc, quy ước, cách hỏi người dùng |
-| `flow-init` | Đưa một dự án vào quy trình |
-| `flow-explore` | Điều tra phạm vi, không sửa mã |
-| `flow-plan` | Viết kế hoạch, chia task, vòng đời trạng thái |
-| `flow-execute` | Thi hành plan đã duyệt, các điểm dừng |
-| `flow-post` | Đóng việc: verify, vệ sinh, nghiệm thu, review, ngữ cảnh, giao |
-| `flow-test` | Thiết kế test có khả năng thất bại |
-| `flow-runbook` | Quy trình chạy tay đọc được kết quả |
-| `flow-review` | Soát độc lập bằng subagent mới |
-| `flow-context` | Tài liệu ngữ cảnh theo module, service và chuẩn chung |
-| `flow-learn` | Ghi luật và memory, ranh giới với bộ skill |
-| `flow-sync` | Đồng bộ ngữ cảnh với mã |
-| `flow-worktree` | Làm song song an toàn |
-| `flow-secrets` | Dò bí mật và thông tin cá nhân mà không in giá trị |
+| `flow` | Entry point: orientation, reading order, task size, principles, conventions, asking the user |
+| `flow-init` | Bring a project into the workflow |
+| `flow-explore` | Investigate scope without changing code |
+| `flow-plan` | Write the plan, split tasks, track status |
+| `flow-execute` | Carry out an approved plan, with defined stopping points |
+| `flow-post` | Close the work: verify, clean up, accept, review, update context, hand over |
+| `flow-test` | Design tests that are able to fail |
+| `flow-runbook` | Manual procedures whose results can be read |
+| `flow-review` | Independent review by a fresh subagent |
+| `flow-context` | Context documents for modules, services and shared standards |
+| `flow-learn` | Record rules and memories, and the boundary with the pack |
+| `flow-sync` | Bring context back in line with the code |
+| `flow-worktree` | Run parallel work safely |
+| `flow-secrets` | Find secrets and personal data without printing their values |
 
-Gọi skill: Claude Code `/flow-x`, Gemini `/flow:x`, Codex `/prompts:flow-x`.
+Invoke a skill with `/flow-x` in Claude Code, `/flow:x` in Gemini CLI and `/prompts:flow-x` in Codex.
 
-## Bố cục `.flow/`
+## The `.flow/` directory
 
-Thư mục cục bộ của mỗi repo. Không commit, bỏ qua bằng `.git/info/exclude`, không nhắc tên trong mã, commit, PR.
+Each repository gets its own local copy. It is never committed and is not mentioned in code, commits or pull requests.
 
 ```
 .flow/
-  profile.json    cấu hình máy đọc
-  PROJECT.md      toàn cảnh dự án
-  services.md     bản đồ service
-  coverage.md     tự sinh, độ phủ ngữ cảnh
-  contracts.md    hợp đồng dùng chung
-  consumed/       cách repo dùng service ngoài
-  reference/      chuẩn dùng chung
-  assets/         sơ đồ, ảnh tham khảo
-  rules/          mỗi luật một tệp, INDEX.md tự sinh
-  memory/         điều về cách làm việc, INDEX.md tự sinh
-  plans/          active/ và shipped/
-  gates/          danh sách kiểm theo loại thay đổi
-  handoff/        runbook và tài liệu bàn giao
-  dup/            baseline trùng lặp
-  secrets/        hash theo dõi, phán xử
-  runs/           kết quả chạy
+  profile.json    machine-readable configuration
+  PROJECT.md      project overview
+  services.md     service map
+  coverage.md     generated context coverage
+  contracts.md    shared contracts
+  consumed/       how this repo uses external services
+  reference/      shared standards
+  assets/         diagrams and reference images
+  rules/          one rule per file, with a generated INDEX.md
+  memory/         how to work here, with a generated INDEX.md
+  plans/          active/ and shipped/
+  gates/          checklists by type of change
+  handoff/        runbooks and handover documents
+  dup/            duplicate-code baseline
+  secrets/        watched hashes and adjudications
+  runs/           run results
 ```
 
-Mỗi module có thêm `CONTEXT.md` cạnh mã, cũng không commit.
+Each module can also have a `CONTEXT.md` next to its code, which is not committed either.
 
-Gate mẫu nằm ở `<gói>/presets/gates/`, khuôn tài liệu ở `<gói>/templates/`.
+## Commands
 
-## Lệnh
+Run `flow help` for the full syntax. The main groups are:
 
-Xem đủ cú pháp bằng `flow help`. Các nhóm chính:
-
-| Nhóm | Lệnh |
+| Group | Commands |
 |---|---|
-| Khung | `fingerprint`, `onboard`, `user`, `where`, `init`, `exclude`, `doctor`, `reindex` |
-| Tri thức | `rules`, `memory`, `context`, `gates`, `sync` |
-| Bí mật | `secrets scan`, `secrets env`, `secrets watch`, `secrets allow` |
-| DRY | `dup find`, `dup check`, `dup baseline`, `dup report`, `dup allow` |
-| Quy trình | `plan`, `task`, `runbook`, `wt`, `verify`, `check`, `commitmsg`, `prmsg` |
-| Hook | `hook pretool`, `hook session` |
-| Tự kiểm | `selftest` |
+| Setup | `install`, `uninstall`, `fingerprint`, `onboard`, `user`, `where`, `init`, `exclude`, `doctor`, `reindex` |
+| Knowledge | `rules`, `memory`, `context`, `gates`, `sync` |
+| Secrets | `secrets scan`, `secrets env`, `secrets watch`, `secrets allow` |
+| Duplicates | `dup find`, `dup check`, `dup baseline`, `dup report`, `dup allow` |
+| Workflow | `plan`, `task`, `runbook`, `wt`, `verify`, `check`, `commitmsg`, `prmsg` |
+| Hooks | `hook pretool`, `hook session` |
+| Self-check | `selftest`, `provenance` |
 
-## Ranh giới dự án ↔ bộ skill
+## Projects teach, the pack generalises
 
-Dự án là nơi học, bộ skill chỉ giữ nguyên lý chung.
+Project-specific knowledge such as names, code, figures, incidents, domain terms and data stays in that project's `.flow/` and never enters the pack. Only a principle generalised into common practice may be added, rewritten in new words with examples from a fictional domain. Agents do not edit the pack during a task; they propose the change and wait for your approval. See the `flow-learn` skill.
 
-- Kiến thức cụ thể của dự án (tên, mã, số liệu, sự cố, từ nghiệp vụ, dữ liệu) ở lại trong `.flow/` của dự án đó và không bao giờ đi vào bộ skill.
-- Chỉ đưa vào bộ skill một nguyên lý đã khái quát thành thực hành chung: viết lại hoàn toàn bằng lời mới, không định danh, không số liệu, không chuyện cụ thể, ví dụ dùng miền hư cấu, áp dụng được cho một dự án xa lạ.
-- Không chép mã, không chép câu từ của dự án.
-- Agent không tự sửa bộ skill giữa task. Đề xuất cho người dùng trên chat ở bước post, kèm bản nháp đã khái quát; được đồng ý mới sửa.
-- Từ riêng của một dự án khai trong `.flow/profile.json`.
+## Contributing
 
-Chi tiết ở skill `flow-learn`.
-
-## Phát triển
-
-Từ bản clone, `node install.mjs` nhận cùng các cờ của `flow install`, thêm `--uninstall`.
+From a clone, `node install.mjs` accepts the same flags as `flow install`, plus `--uninstall`.
 
 ```bash
 npm test
-flow selftest
-flow provenance --against <dự án>
+node bin/flow.mjs selftest
+node bin/flow.mjs provenance --against <project directory>
 ```
 
-Mọi thay đổi vào bộ skill phải qua cả ba. `selftest` kiểm chuẩn của skill, khuôn và gate. `provenance` kiểm nội dung không mang gì từ dự án được đối chiếu.
+`selftest` checks the standards for skills, templates and gates. `provenance` measures verbatim overlap between the pack and the project you compare it with. See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) and [CHANGELOG.md](CHANGELOG.md).
 
-## Giấy phép
+## Trademarks and third-party software
 
-MIT, xem tệp `LICENSE`.
+This is an independent project. It is not affiliated with, sponsored by or endorsed by Anthropic, OpenAI or Google. Claude and Claude Code are trademarks of Anthropic, Codex is a trademark of OpenAI, and Gemini is a trademark of Google; these names are used only to say which products the tool works with.
 
-Các đóng góp theo `CONTRIBUTING.md`, báo lỗ hổng theo `SECURITY.md`, lịch sử phiên bản ở `CHANGELOG.md`.
+The package has no npm dependencies. `gitleaks` is an optional tool and is not bundled: if it is on your machine, `flow secrets scan` also calls it, and otherwise that layer is skipped.
 
-## Nhãn hiệu và phần mềm bên thứ ba
+## License
 
-Đây là dự án độc lập, không liên kết, không được bảo trợ hay xác nhận bởi Anthropic, OpenAI hay Google. Claude và Claude Code là nhãn hiệu của Anthropic, Codex là nhãn hiệu của OpenAI, Gemini là nhãn hiệu của Google; các tên này chỉ được dùng để nói công cụ tương thích với sản phẩm nào.
-
-Gói không có phụ thuộc npm. `gitleaks` là công cụ tuỳ chọn, không đóng gói kèm: có trên máy thì `flow secrets scan` gọi thêm, không có thì bỏ qua lớp đó.
+[MIT](LICENSE)

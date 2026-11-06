@@ -329,5 +329,5 @@ if (!UNINSTALL) {
   log('');
   log('Xong. Mở phiên CLI mới để thấy skill (Gemini: /skills reload). Kiểm: `flow help`.');
   if (!HOOKS) log('Hook chưa cài. Tự chạy: flow install --hooks (SessionStart nạp lại trạng thái sau nén · PreToolUse chặn ghi nhánh được bảo vệ, cho Claude Code + Codex).');
-  if (VIA_PACKAGE_MANAGER) log('Trước khi gỡ gói: chạy flow uninstall, rồi npm uninstall -g flowharness.');
+  if (VIA_PACKAGE_MANAGER) log('Trước khi gỡ gói: chạy flow uninstall, rồi npm uninstall -g flow-harness.');
 }
