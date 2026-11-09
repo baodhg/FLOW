@@ -9,83 +9,146 @@ Máy gom dữ liệu, bạn viết thành lời, người dùng chọn nội dun
 
 ## Luật
 
-- Mỗi dòng phải truy được về nguồn: commit, PR, task, hoặc lời người dùng. Việc chỉ có lời người dùng thì đánh dấu là tự khai trong lúc nháp.
+- Mỗi dòng phải truy được về nguồn: commit, PR, task, tag, hoặc lời người dùng. Việc chỉ có lời người dùng thì đánh dấu là tự khai trong lúc nháp.
+- Hạn hoàn thành chỉ lấy từ người dùng. Chưa có thì hỏi, họ không nêu thì không ghi hạn.
+- Ghi đúng mức đã đạt, ngay sau tên việc: "đã merge", "đã vào nhánh chính", "đã gắn tag vX". "Đã QA" và "đã deploy" chỉ ghi khi người dùng xác nhận. Không viết câu ngụ ý người dùng cuối đã dùng được khi chưa có xác nhận deploy.
 - Không đoán giờ làm từ commit. Giờ làm chỉ lấy khi người dùng khai.
 - Tiến độ chỉ ghi bằng số đếm thật, ví dụ 3/5 task. Không tự ước phần trăm.
+- Mã ticket chỉ lấy từ `tickets` hoặc lời người dùng, không tự đặt.
 - Chỉ báo cáo việc của chính người dùng. Không đưa tên hay việc của đồng nghiệp từ `otherAuthors` vào báo cáo.
-- Viết theo kết quả người đọc nhận được, không chép tiêu đề commit.
-- Không in bí mật. Không nhắc tên quy trình hay công cụ này trong báo cáo.
+- Tên việc nói điều đã làm được, không chép tiêu đề commit.
+- Không in bí mật. Không nhắc tên quy trình hay công cụ này trong báo cáo, trừ khi đó chính là sản phẩm được báo cáo.
 
-## 1. Đọc trước khi hỏi
+## 1. Đọc dữ liệu
+
+Chạy cho ba khoảng để có số liệu đưa vào câu hỏi. Người dùng đã nêu khoảng thì chỉ chạy khoảng đó.
 
 ```
-flow report collect --json
-flow report collect --json --since yesterday
-flow report collect --json --all
+flow report collect --json --since today
+flow report collect --json --since last-workday
+flow report collect --json --since week
 ```
 
-`--since` nhận `today`, `yesterday`, `last-workday`, `week`, `since-last`, hoặc `YYYY-MM-DD`, có thể kèm `--until YYYY-MM-DD`. `--all` đọc mọi repo trong workspace. `--day-starts-at 4` tính việc làm trước 4 giờ sáng vào ngày hôm trước.
-
-Đọc kết quả:
+Người dùng làm nhiều repo trong một workspace thì thêm `--all`. `--since` còn nhận `yesterday`, `since-last`, hoặc `YYYY-MM-DD`, có thể kèm `--until YYYY-MM-DD`. `--day-starts-at 4` tính việc làm trước 4 giờ sáng vào ngày hôm trước.
 
 | Trường | Cách xử lý |
 |---|---|
-| `repos[].commits` | Việc đã viết, tính theo giờ viết và giờ máy người dùng; `pushed: false` là chưa đẩy lên |
-| `repos[].worktrees`, `stashes` | Việc dở chưa commit |
+| `repos[].commits` | Việc đã viết, tính theo giờ viết và giờ máy người dùng |
+| `commits[].onDefault` | Đã vào nhánh chính |
+| `commits[].pushed` | `false` là chưa đẩy lên |
+| `commits[].pr`, `tickets` | PR và mã ticket liên quan; `pr: null` là chưa tìm được, không phải không có |
+| `repos[].releases` | Tag trên nhánh chính tạo trong khoảng |
+| `repos[].worktrees`, `stashes` | Việc dở tại thời điểm chạy lệnh |
 | `repos[].pullRequests` | `available: false` nghĩa là chưa biết, không phải bằng 0; nêu `reason` cho người dùng |
+| `pullRequests.open[]` | PR đang mở tại thời điểm chạy; `touched: true` là có cập nhật trong khoảng; `checks` là `passing`, `failing`, `pending`, `none` |
+| `reviewDecision` | `APPROVED`, `CHANGES_REQUESTED`, `REVIEW_REQUIRED`; rỗng nghĩa là repo không yêu cầu duyệt, không có nghĩa là chưa ai xem |
+| `pullRequests.reviewed` | PR của người khác mà người dùng đã review |
 | `repos[].otherAuthors` | Người khác, hoặc chính người dùng với danh tính khác |
 | `plans` | Tiến độ, việc còn mở, quyết định chờ, ghi chú theo ngày |
 | `previous` | Báo cáo gần nhất; đọc phần hẹn ngày mai để đối chiếu |
+| `language` | Ngôn ngữ của dự án, `null` khi chưa có `.flow/` |
 | `redacted` | Lớn hơn 0 thì báo người dùng có giá trị giống bí mật trong commit |
 
-Đọc diff của từng cụm việc bằng `git show --stat <hash>`, rồi `git show <hash>` với cụm chưa rõ, để hiểu việc đó tạo ra kết quả gì.
+`window.includesNow` là `false` khi báo cáo một khoảng đã qua: bỏ `worktrees`, `stashes`, và chỉ giữ PR đang mở có `touched: true`.
 
-## 2. Gom thành việc
+## 2. Hỏi mục đích, khoảng, tiêu chí
 
-- Gom commit, PR, task cùng mục đích thành một việc, kể cả khi nằm ở nhiều repo hay worktree.
-- Commit trên nhánh và commit squash có `pr` trùng nhau là một việc.
-- Commit phát hành và commit cấu hình phụ thì gộp vào việc chính hoặc bỏ.
-
-## 3. Hỏi một lượt
-
-Theo mục "Hỏi người dùng" ở skill `flow`. Mỗi lựa chọn kèm số liệu thật. Đã rõ từ lời người dùng thì không hỏi lại.
+Theo mục "Hỏi người dùng" ở skill `flow`. Đã rõ từ lời người dùng thì bỏ câu đó. Ba câu này gửi trong một lần, vì không câu nào phụ thuộc câu khác.
 
 | Câu | Lựa chọn |
 |---|---|
-| Mục đích | Báo cáo ngày, báo cáo miệng, tự xem lại, standup, báo cáo tuần |
-| Khoảng thời gian | Mặc định theo mục đích; ghi số commit và PR của từng khoảng |
-| Tiêu chí | Chọn nhiều, chỉ hiện mục có dữ liệu; ba nhóm On-going, Done, Pending chọn sẵn |
-| Việc đưa vào | Chọn nhiều, liệt kê các việc đã gom ở bước 2 |
+| Mục đích | Báo cáo ngày, Báo cáo miệng, Tự xem lại, Standup hoặc báo cáo tuần |
+| Khoảng thời gian | Theo mục đích (mặc định), Hôm nay, Từ ngày làm việc gần nhất, Tuần này; ba mục sau ghi số commit và PR. Ngày cụ thể thì gõ vào ô khác |
+| Tiêu chí | "Dùng bộ mặc định", hoặc "Tuỳ chỉnh" |
 
-Khoảng mặc định: báo cáo ngày, miệng, tự xem lại dùng `today`; standup dùng `last-workday`; báo cáo tuần dùng `week`.
+Lựa chọn thứ tư gộp hai mục đích vì công cụ hỏi chỉ cho 4 lựa chọn; chọn nó thì bước 4 hỏi thêm là loại nào. CLI không có giới hạn đó thì liệt kê đủ 5 mục đích.
 
-Tiêu chí có thể chọn: Blocker và cần hỗ trợ, Kế hoạch ngày mai, Bằng chứng (PR, commit, test), Tiến độ, Giờ làm do người dùng khai, Việc ngoài code, Rủi ro, Quyết định đã chốt.
+| Mục đích | Khoảng mặc định | Bộ tiêu chí mặc định |
+|---|---|---|
+| Báo cáo ngày | `today` | Blocker, Ngày mai |
+| Báo cáo miệng | `today` | Blocker, Rủi ro |
+| Tự xem lại | `today` | Ngày mai, Việc ngoài code |
+| Standup | `last-workday` | Blocker |
+| Báo cáo tuần | `week` | Trạng thái chung, Tiến độ, Rủi ro, Quyết định đã chốt |
 
-Nhiều việc hơn số lựa chọn công cụ cho phép thì tách thành nhiều câu, hoặc hỏi tiếp một lượt nữa. `otherAuthors` trông giống chính người dùng thì hỏi, rồi chạy lại với `--author <tên hoặc email>`.
+Ba nhóm On-going, Done, Pending luôn có, không đưa vào câu hỏi. Tiêu chí mặc định cần dữ liệu mà không có thì bỏ và nói rõ.
 
-Luôn hỏi thêm phần code không thể hiện: họp, hỗ trợ người khác, đang chờ ai, từ ngày nào.
+Chọn "Tuỳ chỉnh" thì hỏi tiếp tối đa 3 câu chọn nhiều. Tiêu chí cần dữ liệu chỉ hiện khi có dữ liệu.
 
-### Khi người dùng đưa sẵn ngữ cảnh
+| Câu | Tiêu chí | Điều kiện hiện |
+|---|---|---|
+| Công việc | Ngày mai, Việc phát sinh | Luôn hiện |
+| | Tiến độ | `plans[].total` lớn hơn 0 |
+| | Bằng chứng | Có commit hoặc PR |
+| Vướng mắc | Blocker, Rủi ro | Luôn hiện |
+| | Quyết định đã chốt | Plan có ghi chú `decision` |
+| Khác | Việc ngoài code, Giờ làm, Trạng thái chung | Luôn hiện |
+| | Review, hỗ trợ | `pullRequests.reviewed` có mục, hoặc không đọc được PR |
 
-Ví dụ `/flow-report xong API thanh toán, mai QA test`. Vẫn chạy bước 1, coi lời họ là nguồn chính, không hỏi lại điều đã nói, chỉ hỏi mục đích và tiêu chí còn thiếu. Lời kể lệch với dữ liệu thì nêu cả hai để họ quyết, ví dụ họ nói xong nhưng PR còn mở.
+`otherAuthors` trông giống chính người dùng thì hỏi, rồi chạy lại với `--author <tên hoặc email>`.
 
-## 4. Xếp nhóm
+## 3. Gom thành việc
+
+Dùng dữ liệu của khoảng đã chọn. Đọc `git show --stat <hash>`, rồi `git show <hash>` với cụm chưa rõ, để hiểu mỗi việc tạo ra kết quả gì.
+
+- Gom commit, PR, task cùng mục đích thành một việc, kể cả khi nằm ở nhiều repo hay worktree.
+- Commit cùng `pr` hoặc cùng `tickets` là một việc.
+- Commit phát hành và commit cấu hình phụ thì gộp vào việc chính hoặc bỏ.
+
+## 4. Hỏi việc đưa vào và việc đã xong
+
+Một lần gọi, tối đa 4 câu:
+
+| Câu | Lựa chọn |
+|---|---|
+| Standup hay báo cáo tuần | Chỉ hỏi khi bước 2 chọn mục gộp |
+| Đưa việc nào vào | "Tất cả N việc" (mặc định), "Chọn từng việc" |
+| Việc nào đã xong | Từ 3 việc trở xuống: liệt kê từng việc và "Không việc nào". Nhiều hơn: "Tất cả", "Không việc nào", "Chọn từng việc" |
+| Định dạng | Chỉ cho báo cáo ngày và tuần: Văn bản thường (mặc định), Markdown, Email |
+
+Câu "Việc nào đã xong" chỉ gồm việc chưa tự vào Done theo bước 6. Mô tả mỗi lựa chọn ghi bằng chứng: "đã vào nhánh chính", "đã gắn tag v0.3.0", "PR đang mở, CI xanh".
+
+Chọn "Chọn từng việc" thì gửi thêm một lần gọi, mỗi câu tối đa 4 việc, tối đa 4 câu. Còn nhiều hơn thì gộp các việc gần nhau.
+
+## 5. Hỏi điều máy không biết
+
+Sau các câu trên, gửi một tin nhắn thường rồi dừng chờ, vì đây là thông tin tự do chứ không phải lựa chọn. Chỉ hỏi phần áp dụng:
+
+- Hạn hoàn thành của việc On-going.
+- Việc đã QA hay deploy.
+- Chi tiết blocker và rủi ro, nếu đã chọn.
+- Ngày mai, Giờ làm, Việc ngoài code, Việc phát sinh, nếu đã chọn.
+- Đã làm gì khác mà code không thể hiện.
+- Ngôn ngữ báo cáo, nếu chưa suy ra được.
+
+Người dùng đưa sẵn ngữ cảnh, ví dụ `/flow-report xong API thanh toán, mai QA test`: vẫn chạy bước 1, coi lời họ là nguồn chính, không hỏi lại điều đã nói. Lời kể lệch với dữ liệu thì nêu cả hai để họ quyết, ví dụ họ nói xong nhưng PR còn mở.
+
+## 6. Xếp nhóm
 
 | Nhóm | Điều kiện |
 |---|---|
-| Done | PR đã merge thì tự xếp vào đây. Mọi việc khác phải hỏi người dùng đã xong chưa |
-| On-going | Đang có hoạt động và người dùng nói chưa xong: PR đang mở, thay đổi chưa commit, plan đang chạy |
-| Pending | Việc đang kẹt hoặc chưa bắt đầu. Mỗi dòng ghi lý do: chờ ai và từ ngày nào, hoặc "chưa bắt đầu" |
+| Done | Mọi phần của việc đã merge qua PR thì tự xếp vào đây. Việc đẩy thẳng lên nhánh chính hoặc có phần chưa merge phải được người dùng xác nhận |
+| On-going | Chưa xong: PR đang mở, thay đổi chưa commit, plan đang chạy, hoặc việc không được chọn là xong |
+| Pending | Việc đang kẹt hoặc chưa bắt đầu, ghi nhãn lý do. Không có thì ghi "Không có" |
 
-Hỏi Done trong một lượt, gom các việc chưa merge vào câu chọn nhiều "Việc nào đã xong?"; việc không được chọn vào On-going. Không có lý do của Pending thì hỏi, không tự nghĩ ra.
+- Việc On-going có `checks: failing` hoặc `reviewDecision: CHANGES_REQUESTED` thì nêu ra, vì đó là lý do chưa xong.
+- Blocker ghi đủ: cần gì, từ ai, chờ từ ngày nào, cần trước khi nào, trễ thì ảnh hưởng gì. Thiếu thì hỏi, không tự nghĩ ra.
+- Việc phát sinh là việc không có trong plan và không có trong lời hẹn của `previous`. Không có hai nguồn đó thì hỏi người dùng, không tự gắn nhãn.
+- Trạng thái chung (Đúng tiến độ, Có rủi ro, Trễ) do người dùng chọn. Có thể gợi ý kèm căn cứ.
 
-## 5. Viết
+## 7. Viết
 
-Dùng khuôn của mục đích đã chọn trong [templates](references/templates.md). Ngôn ngữ theo `language.user` nếu có, không thì theo ngôn ngữ người dùng đang viết. Cho người dùng xem bản nháp và sửa đến khi họ ưng.
+Dùng khuôn của mục đích đã chọn trong [templates](references/templates.md).
 
-Có `previous` thì so với điều đã hẹn; việc đã hẹn mà chưa làm thì nêu trong lúc nháp để người dùng quyết có đưa vào không.
+- Tên người báo cáo: tên người dùng đã nói, không có thì `identities.names[0]`.
+- Ngày tiêu đề là ngày cuối của khoảng. "Ngày mai" tính từ lúc viết báo cáo.
+- Có `tickets` thì đặt mã ở đầu dòng của bản gửi nhóm, bỏ khi báo cáo miệng.
+- Báo cáo nhiều repo thì ghi tên repo đầu dòng.
+- Báo cáo gửi nhóm hoặc cấp trên dùng `language.team`. Tự xem lại dùng `language.user`. Không có thì theo ngôn ngữ người dùng đang viết. Người dùng nói khác thì theo người dùng.
+- Cho người dùng xem bản nháp và sửa đến khi họ ưng.
+- Có `previous` thì so với điều đã hẹn; việc đã hẹn mà chưa làm thì nêu trong lúc nháp để người dùng quyết có đưa vào không.
 
-## 6. Lưu
+## 8. Lưu
 
 `saveDir` khác `null` thì lưu vào `<saveDir>/<saveStem>-<kiểu>.md`, với kiểu là `daily`, `oral`, `review`, `standup`, `weekly`, rồi báo đường dẫn. Thư mục này chỉ nằm trên máy.
 

@@ -372,6 +372,126 @@ test('merged pull requests are placed by instant, whatever the time zone', (t) =
   assert.ok(calls.some((call) => call.includes(`merged:>=${window.start.toISOString().slice(0, 10)}`)), calls.join('\n'));
 });
 
+test('a squash merge without a number still counts once, on the main branch', (t) => {
+  const repo = makeRepo(path.join(sandbox(t), 'repo'));
+  commit(repo, 'feat: base', { at: local(9) });
+  git(repo, ['checkout', '-q', '-b', 'feat/x']);
+  commit(repo, 'feat: renew once', { at: local(10) });
+  git(repo, ['checkout', '-q', 'main']);
+  commit(repo, 'feat: renew once', { at: local(12) });
+  const [, renewed, ...rest] = collect(repo).repos[0].commits;
+  assert.deepEqual(rest, []);
+  assert.deepEqual([renewed.subject, renewed.onDefault, renewed.ref], ['feat: renew once', true, 'main']);
+});
+
+test('equal subjects on unmerged branches stay separate and are marked as unmerged', (t) => {
+  const repo = makeRepo(path.join(sandbox(t), 'repo'));
+  commit(repo, 'feat: base', { at: local(9) });
+  git(repo, ['checkout', '-q', '-b', 'feat/a']);
+  commit(repo, 'wip', { at: local(10) });
+  git(repo, ['checkout', '-q', 'main']);
+  git(repo, ['checkout', '-q', '-b', 'feat/b']);
+  commit(repo, 'wip', { at: local(11) });
+  const commits = collect(repo).repos[0].commits.filter((item) => item.subject === 'wip');
+  assert.deepEqual(commits.map((item) => [item.ref, item.onDefault]), [['feat/a', false], ['feat/b', false]]);
+});
+
+test('commits link to pull requests by title and, off the main branch, by branch', (t) => {
+  const repo = makeRepo(path.join(sandbox(t), 'repo'));
+  git(repo, ['remote', 'add', 'origin', 'https://github.com/a/b.git']);
+  commit(repo, 'docs: same title as the pull request', { at: local(9) });
+  git(repo, ['checkout', '-q', '-b', 'feat/open']);
+  commit(repo, 'feat: part one', { at: local(10) });
+  const gh = (cwd, args) => {
+    if (args.includes('open')) return { ok: true, out: JSON.stringify([{ number: 12, title: 'other', headRefName: 'feat/open', updatedAt: local(10).toISOString() }]) };
+    if (args.includes('merged')) return { ok: true, out: JSON.stringify([{ number: 11, title: 'docs: same title as the pull request', headRefName: 'docs/x', mergedAt: local(9, 30).toISOString() }]) };
+    return { ok: true, out: '[]' };
+  };
+  const commits = collect(repo, { gh }).repos[0].commits;
+  assert.deepEqual(commits.map((item) => item.pr), [11, 12]);
+});
+
+test('a branch that also reaches main does not lend its ticket to main commits', (t) => {
+  const repo = makeRepo(path.join(sandbox(t), 'repo'));
+  commit(repo, 'feat: on main', { at: local(9) });
+  git(repo, ['checkout', '-q', '-b', 'feat/ZZZ-1-later']);
+  const [sharedTip] = collect(repo).repos[0].commits;
+  assert.deepEqual([sharedTip.ref, sharedTip.tickets], ['main', []]);
+  commit(repo, 'feat: on the branch', { at: local(10) });
+  const [, onBranch] = collect(repo).repos[0].commits;
+  assert.deepEqual(onBranch.tickets, ['ZZZ-1']);
+});
+
+test('tags on the main branch made in the period are listed as releases', (t) => {
+  const repo = makeRepo(path.join(sandbox(t), 'repo'));
+  commit(repo, 'feat: base', { at: local(9) });
+  git(repo, ['tag', '-a', '-m', 'release', 'v1.0.0'], { ...ME, GIT_COMMITTER_DATE: local(10).toISOString() });
+  git(repo, ['tag', '-a', '-m', 'release', 'v0.9.0'], { ...ME, GIT_COMMITTER_DATE: local(10, 0, 2).toISOString() });
+  git(repo, ['checkout', '-q', '-b', 'side']);
+  commit(repo, 'feat: side', { at: local(11) });
+  git(repo, ['tag', '-a', '-m', 'release', 'side-1'], { ...ME, GIT_COMMITTER_DATE: local(11).toISOString() });
+  assert.deepEqual(collect(repo).repos[0].releases.map((item) => item.tag), ['v1.0.0']);
+});
+
+test('the report says whether the period reaches the present', (t) => {
+  const repo = makeRepo(path.join(sandbox(t), 'repo'));
+  commit(repo, 'feat: base');
+  assert.equal(collect(repo).window.includesNow, true);
+  assert.equal(collect(repo, { since: 'yesterday' }).window.includesNow, false);
+  assert.equal(collect(repo, { since: '2026-11-03' }).window.includesNow, false);
+});
+
+test('ticket codes come from commits and branches, not from version-like words', (t) => {
+  const repo = makeRepo(path.join(sandbox(t), 'repo'));
+  commit(repo, 'feat: renew loans ABC-123 on UTF-8 pages with SHA-256 and x86-64 (#7)');
+  commit(repo, 'fix: late fee\n\nRefs OPS-9 and closes #55', { at: local(11) });
+  git(repo, ['checkout', '-q', '-b', 'feat/TCK-8-renewal']);
+  commit(repo, 'feat: renewal screen', { at: local(12) });
+  const [first, second, third] = collect(repo).repos[0].commits;
+  assert.deepEqual(first.tickets, ['ABC-123']);
+  assert.deepEqual(second.tickets, ['#55', 'OPS-9']);
+  assert.deepEqual(third.tickets, ['TCK-8']);
+});
+
+test('pull requests carry their tickets and one clear check state', (t) => {
+  const repo = makeRepo(path.join(sandbox(t), 'repo'));
+  commit(repo, 'feat: base');
+  git(repo, ['remote', 'add', 'origin', 'https://github.com/a/b.git']);
+  const window = resolveWindow({ since: 'today', now: NOW });
+  const open = [
+    { number: 1, title: 'fix LIB-4', headRefName: 'LIB-5-screen', updatedAt: NOW.toISOString(), statusCheckRollup: [{ status: 'COMPLETED', conclusion: 'SUCCESS' }, { status: 'COMPLETED', conclusion: 'SKIPPED' }] },
+    { number: 2, title: 'b', updatedAt: NOW.toISOString(), statusCheckRollup: [{ status: 'IN_PROGRESS', conclusion: '' }, { status: 'COMPLETED', conclusion: 'SUCCESS' }] },
+    { number: 3, title: 'c', updatedAt: NOW.toISOString(), statusCheckRollup: [{ status: 'IN_PROGRESS', conclusion: '' }, { status: 'COMPLETED', conclusion: 'FAILURE' }] },
+    { number: 4, title: 'd', updatedAt: NOW.toISOString(), statusCheckRollup: [{ state: 'ERROR' }] },
+    { number: 5, title: 'e', updatedAt: NOW.toISOString(), statusCheckRollup: [] },
+  ];
+  const gh = (cwd, args) => ({ ok: true, out: JSON.stringify(args.includes('open') ? open : []) });
+  const result = collectPullRequests(repo, window, gh);
+  assert.deepEqual(result.open.map((item) => item.checks), ['passing', 'pending', 'failing', 'failing', 'none']);
+  assert.deepEqual(result.open[0].tickets, ['LIB-4', 'LIB-5']);
+  assert.equal(result.open[0].statusCheckRollup, undefined);
+});
+
+test('the report language settings are passed on when the project has them', (t) => {
+  const base = sandbox(t);
+  const repo = makeRepo(path.join(base, 'repo'));
+  commit(repo, 'feat: base');
+  assert.equal(collect(repo).language, null);
+  makeFlow(repo);
+  fs.writeFileSync(path.join(repo, '.flow', 'profile.json'), JSON.stringify({ name: 'demo', language: { team: 'en', user: 'vi' } }));
+  const { language } = collect(repo);
+  assert.deepEqual([language.team, language.user], ['en', 'vi']);
+});
+
+test('templates state nothing the collected data cannot prove', () => {
+  const templates = fs.readFileSync(path.join(PACK, 'skills', 'flow-report', 'references', 'templates.md'), 'utf8');
+  const skill = fs.readFileSync(path.join(PACK, 'skills', 'flow-report', 'SKILL.md'), 'utf8');
+  assert.doesNotMatch(templates, /chạy trên production|lên production/);
+  assert.doesNotMatch(templates, /dự kiến mai/);
+  for (const needle of ['Hạn hoàn thành', 'đã merge', 'đã deploy', 'language.team', 'pullRequests.reviewed', 'Dùng bộ mặc định', 'onDefault', 'touched', 'includesNow', 'releases', 'Tất cả', 'Không việc nào']) assert.ok(skill.includes(needle), needle);
+  for (const needle of ['cần trước', 'Trạng thái chung']) assert.ok(templates.includes(needle), needle);
+});
+
 test('the summary tells unknown pull requests apart from none', (t) => {
   const repo = makeRepo(path.join(sandbox(t), 'repo'));
   commit(repo, 'feat: base');
