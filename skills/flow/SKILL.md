@@ -44,7 +44,7 @@ Post không bao giờ bỏ, kể cả với S, vì đó là nơi phép đo thậ
 - Đường chính: skill `flow-explore`, skill `flow-plan`, skill `flow-execute`, skill `flow-post`
 - Chất lượng: skill `flow-test`, skill `flow-review`, skill `flow-runbook`
 - Kiến thức: skill `flow-context`, skill `flow-learn`
-- Hỗ trợ: skill `flow-worktree`, skill `flow-secrets`
+- Hỗ trợ: skill `flow-worktree`, skill `flow-secrets`, skill `flow-report`
 
 ## Nguyên tắc
 

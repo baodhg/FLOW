@@ -8,6 +8,7 @@ import { test } from 'node:test';
 import { CORE_SKILLS, describeChanges, detectAgents, installArgs, isSetUp, listSkills, runWizard, runsFromNpxCache, stringsFor } from '../lib/wizard.mjs';
 
 const PACK = path.resolve(import.meta.dirname, '..');
+const ALL_SKILLS = listSkills(PACK).length;
 const INSTALL = path.join(PACK, 'install.mjs');
 const UP = '\x1b[A';
 const DOWN = '\x1b[B';
@@ -90,7 +91,7 @@ test('the first question picks the language, starting from the system language',
   assert.match(text, /Language \/ Ngôn ngữ/);
   assert.match(text, /Cài cho công cụ AI nào\?/);
   assert.match(text, /Đã chọn 1\/3/);
-  assert.match(text, /Đã nối 14 skill/);
+  assert.match(text, new RegExp(`Đã nối ${ALL_SKILLS} skill`));
   assert.doesNotMatch(text, /This will change:/);
 });
 
@@ -272,7 +273,7 @@ test('the built-in runner applies the choices without freezing the progress line
   const { code, text } = await play([ENTER, ENTER, ENTER, ENTER], { home, env: homeEnv(home) });
   assert.equal(code, 0, text);
   assert.ok(fs.existsSync(path.join(home, '.claude', 'skills', 'flow', 'SKILL.md')));
-  assert.match(text, /Linked 14 skills/);
+  assert.match(text, new RegExp(`Linked ${ALL_SKILLS} skills`));
   assert.doesNotMatch(text, /DEP0190|DeprecationWarning/);
 });
 
@@ -290,8 +291,8 @@ test('a slow install shows a live progress line while it works, then the result'
   assert.match(text, /Installing the package globally\.\.\./);
   assert.match(text, /Linking skills and updating settings\.\.\./);
   assert.match(text, /Installed the package globally/);
-  assert.match(text, /Linked 14 skills/);
-  assert.ok(text.indexOf('Installed the package globally') < text.indexOf('Linked 14 skills'));
+  assert.match(text, new RegExp(`Linked ${ALL_SKILLS} skills`));
+  assert.ok(text.indexOf('Installed the package globally') < text.indexOf(`Linked ${ALL_SKILLS} skills`));
 });
 
 test('a failed setup step ends the progress line with the reason', async (t) => {
@@ -301,7 +302,7 @@ test('a failed setup step ends the progress line with the reason', async (t) => 
   assert.equal(code, 3);
   assert.match(text, /Setup failed:/);
   assert.match(text, /disk full/);
-  assert.doesNotMatch(text, /Linked 14 skills/);
+  assert.doesNotMatch(text, new RegExp(`Linked ${ALL_SKILLS} skills`));
 });
 
 test('files the pack does not own are reported instead of overwritten', async (t) => {
