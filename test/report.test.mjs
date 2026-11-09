@@ -23,7 +23,7 @@ function git(cwd, args, env = {}) {
 }
 
 function sandbox(t) {
-  const base = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'report-')));
+  const base = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'report-')));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   return base;
 }
