@@ -137,6 +137,7 @@ Thứ đội nhìn thấy theo đội, thứ chỉ người dùng thấy theo ng
 | `flow-sync` | Đồng bộ ngữ cảnh với mã |
 | `flow-worktree` | Làm song song an toàn |
 | `flow-secrets` | Dò bí mật và thông tin cá nhân mà không in giá trị |
+| `flow-report` | Biến việc đã làm thành báo cáo ngày, báo cáo miệng, standup hoặc báo cáo tuần |
 
 Gọi skill: Claude Code `/flow-x`, Gemini `/flow:x`, Codex `/prompts:flow-x`.
 

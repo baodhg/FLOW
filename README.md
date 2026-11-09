@@ -141,6 +141,7 @@ What your team can see follows the team, and what only you can see follows you. 
 | `flow-sync` | Bring context back in line with the code |
 | `flow-worktree` | Run parallel work safely |
 | `flow-secrets` | Find secrets and personal data without printing their values |
+| `flow-report` | Turn real work into a daily, spoken, standup or weekly report |
 
 Invoke a skill with `/flow-x` in Claude Code, `/flow:x` in Gemini CLI and `/prompts:flow-x` in Codex.
 

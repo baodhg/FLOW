@@ -34,6 +34,7 @@ import {
 } from '../lib/commands.mjs';
 import { cmdWorktree } from '../lib/wtcmd.mjs';
 import { cmdFingerprint, cmdOnboard, cmdUser } from '../lib/onboard.mjs';
+import { cmdReport } from '../lib/report.mjs';
 import { cmdSecrets } from '../lib/secretscmd.mjs';
 
 function parseArgs(argv) {
@@ -79,7 +80,7 @@ function packageVersion() {
 async function main() {
   const [cmd, ...rest] = process.argv.slice(2);
   const cwd = realDir(process.cwd());
-  const takesSub = new Set(['rules', 'memory', 'plan', 'context', 'hook', 'dup', 'task', 'runbook', 'wt', 'onboard', 'user', 'secrets']);
+  const takesSub = new Set(['rules', 'memory', 'plan', 'context', 'hook', 'dup', 'task', 'runbook', 'wt', 'onboard', 'user', 'secrets', 'report']);
   let sub;
   let args = rest;
   if (takesSub.has(cmd) && rest[0] && !rest[0].startsWith('--')) {
@@ -142,6 +143,8 @@ async function main() {
       return cmdRunbook(cwd, sub, opts);
     case 'task':
       return cmdTask(cwd, sub, opts);
+    case 'report':
+      return cmdReport(cwd, sub, opts);
     case 'dup':
       return cmdDup(cwd, sub, opts);
     case 'hook':
