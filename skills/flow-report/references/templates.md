@@ -29,7 +29,7 @@ Phần ví dụ thuộc tiêu chí chưa chọn thì bỏ: số PR thuộc Bằn
 
 ## daily
 
-Báo cáo ngày trong nhóm chat. Mỗi việc một dòng, không giải thích kỹ thuật. Mỗi nhóm tối đa 5 dòng, nhiều hơn thì gộp việc gần nhau.
+Báo cáo ngày trong nhóm chat. Mỗi việc một dòng, không giải thích kỹ thuật. Mỗi nhóm nên tối đa 5 dòng; nhiều hơn thì đề xuất gộp việc gần nhau trong bản nháp.
 
 ```
 Báo cáo 09/11 - <tên>

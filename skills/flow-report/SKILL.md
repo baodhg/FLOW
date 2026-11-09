@@ -53,13 +53,15 @@ Người dùng làm nhiều repo trong một workspace thì thêm `--all`. `--si
 
 ## 2. Hỏi mục đích, khoảng, tiêu chí
 
-Theo mục "Hỏi người dùng" ở skill `flow`. Đã rõ từ lời người dùng thì bỏ câu đó. Ba câu này gửi trong một lần, vì không câu nào phụ thuộc câu khác.
+Theo mục "Hỏi người dùng" ở skill `flow`. Đã rõ từ lời người dùng thì bỏ câu đó. Ba câu này gửi trong một lần. Câu trả lời ở đây không ghi vào plan.
 
 | Câu | Lựa chọn |
 |---|---|
 | Mục đích | Báo cáo ngày, Báo cáo miệng, Tự xem lại, Standup hoặc báo cáo tuần |
-| Khoảng thời gian | Theo mục đích (mặc định), Hôm nay, Từ ngày làm việc gần nhất, Tuần này; ba mục sau ghi số commit và PR. Ngày cụ thể thì gõ vào ô khác |
-| Tiêu chí | "Dùng bộ mặc định", hoặc "Tuỳ chỉnh" |
+| Khoảng thời gian | "Theo mục đích" (mô tả ghi khoảng của từng mục đích), Hôm nay, Từ ngày làm việc gần nhất, Tuần này. Ba mục sau ghi số commit và số PR đã merge. Ngày cụ thể thì gõ vào ô khác |
+| Tiêu chí | "Dùng bộ mặc định" (mô tả ghi bộ của từng mục đích), hoặc "Tuỳ chỉnh" |
+
+Hai khoảng có cùng số liệu, ví dụ Hôm nay và Tuần này vào thứ Hai, thì gộp thành một lựa chọn.
 
 Lựa chọn thứ tư gộp hai mục đích vì công cụ hỏi chỉ cho 4 lựa chọn; chọn nó thì bước 4 hỏi thêm là loại nào. CLI không có giới hạn đó thì liệt kê đủ 5 mục đích.
 
@@ -89,11 +91,12 @@ Chọn "Tuỳ chỉnh" thì hỏi tiếp tối đa 3 câu chọn nhiều. Tiêu 
 
 ## 3. Gom thành việc
 
-Dùng dữ liệu của khoảng đã chọn. Đọc `git show --stat <hash>`, rồi `git show <hash>` với cụm chưa rõ, để hiểu mỗi việc tạo ra kết quả gì.
+Dùng dữ liệu của khoảng đã chọn; khoảng chưa chạy ở bước 1, như ngày người dùng gõ, thì chạy thêm. Đọc `git show --stat <hash>`, rồi `git show <hash>` với cụm chưa rõ, để hiểu mỗi việc tạo ra kết quả gì.
 
 - Gom commit, PR, task cùng mục đích thành một việc, kể cả khi nằm ở nhiều repo hay worktree.
 - Commit cùng `pr` hoặc cùng `tickets` là một việc.
 - Commit phát hành và commit cấu hình phụ thì gộp vào việc chính hoặc bỏ.
+- Muốn ghi tag cho một việc thì kiểm bằng `git tag --contains <hash>`, không suy từ giờ tạo tag.
 
 ## 4. Hỏi việc đưa vào và việc đã xong
 
@@ -103,12 +106,12 @@ Một lần gọi, tối đa 4 câu:
 |---|---|
 | Standup hay báo cáo tuần | Chỉ hỏi khi bước 2 chọn mục gộp |
 | Đưa việc nào vào | "Tất cả N việc" (mặc định), "Chọn từng việc" |
-| Việc nào đã xong | Từ 3 việc trở xuống: liệt kê từng việc và "Không việc nào". Nhiều hơn: "Tất cả", "Không việc nào", "Chọn từng việc" |
+| Việc nào đã xong | Chọn nhiều. Từ 3 việc trở xuống: liệt kê từng việc và "Không việc nào". Nhiều hơn: "Tất cả", "Không việc nào", "Chọn từng việc" |
 | Định dạng | Chỉ cho báo cáo ngày và tuần: Văn bản thường (mặc định), Markdown, Email |
 
 Câu "Việc nào đã xong" chỉ gồm việc chưa tự vào Done theo bước 6. Mô tả mỗi lựa chọn ghi bằng chứng: "đã vào nhánh chính", "đã gắn tag v0.3.0", "PR đang mở, CI xanh".
 
-Chọn "Chọn từng việc" thì gửi thêm một lần gọi, mỗi câu tối đa 4 việc, tối đa 4 câu. Còn nhiều hơn thì gộp các việc gần nhau.
+Chọn "Chọn từng việc" thì gửi thêm một lần gọi, mỗi câu 2 đến 4 việc, tối đa 4 câu. Còn nhiều hơn thì gộp các việc gần nhau.
 
 ## 5. Hỏi điều máy không biết
 
@@ -129,8 +132,10 @@ Người dùng đưa sẵn ngữ cảnh, ví dụ `/flow-report xong API thanh t
 |---|---|
 | Done | Mọi phần của việc đã merge qua PR thì tự xếp vào đây. Việc đẩy thẳng lên nhánh chính hoặc có phần chưa merge phải được người dùng xác nhận |
 | On-going | Chưa xong: PR đang mở, thay đổi chưa commit, plan đang chạy, hoặc việc không được chọn là xong |
-| Pending | Việc đang kẹt hoặc chưa bắt đầu, ghi nhãn lý do. Không có thì ghi "Không có" |
+| Pending | Việc đang kẹt hoặc chưa bắt đầu, ghi nhãn lý do |
 
+- Nhóm trống thì ghi "Không có", không bỏ nhóm.
+- Việc chưa bắt đầu đã nằm ở mục Ngày mai thì không lặp ở Pending.
 - Việc On-going có `checks: failing` hoặc `reviewDecision: CHANGES_REQUESTED` thì nêu ra, vì đó là lý do chưa xong.
 - Blocker ghi đủ: cần gì, từ ai, chờ từ ngày nào, cần trước khi nào, trễ thì ảnh hưởng gì. Thiếu thì hỏi, không tự nghĩ ra.
 - Việc phát sinh là việc không có trong plan và không có trong lời hẹn của `previous`. Không có hai nguồn đó thì hỏi người dùng, không tự gắn nhãn.
@@ -141,8 +146,10 @@ Người dùng đưa sẵn ngữ cảnh, ví dụ `/flow-report xong API thanh t
 Dùng khuôn của mục đích đã chọn trong [templates](references/templates.md).
 
 - Tên người báo cáo: tên người dùng đã nói, không có thì `identities.names[0]`.
-- Ngày tiêu đề là ngày cuối của khoảng. "Ngày mai" tính từ lúc viết báo cáo.
+- Ngày tiêu đề là ngày cuối nằm trong khoảng; `window.end` là mốc không tính vào. Báo cáo khoảng đã qua thì đổi mục "Ngày mai" thành "Tiếp theo".
 - Có `tickets` thì đặt mã ở đầu dòng của bản gửi nhóm, bỏ khi báo cáo miệng.
+- Nguồn của từng dòng đưa trong ghi chú kèm bản nháp, không nằm trong báo cáo trừ khi chọn Bằng chứng.
+- Có tag mà người dùng nói chưa deploy thì ghi rõ "chưa deploy", để tag không bị hiểu là đã phát hành.
 - Báo cáo nhiều repo thì ghi tên repo đầu dòng.
 - Báo cáo gửi nhóm hoặc cấp trên dùng `language.team`. Tự xem lại dùng `language.user`. Không có thì theo ngôn ngữ người dùng đang viết. Người dùng nói khác thì theo người dùng.
 - Cho người dùng xem bản nháp và sửa đến khi họ ưng.
