@@ -43,6 +43,6 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "fast-check": "4.10.2"
+    "fast-check": "4.11.0"
   }
 }
