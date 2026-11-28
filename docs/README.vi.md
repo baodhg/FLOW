@@ -54,7 +54,7 @@ flow install --agents claude,codex --skills core
 | `--skills a,b` | Chỉ các skill này, hoặc `core` cho quy trình chính. Luôn có `flow`, và skill không chọn sẽ bị gỡ. Mặc định: tất cả |
 | `--dry` | Xem sẽ làm gì, không ghi |
 | `--no-bridge` | Không ghi cầu nối vào tệp chỉ dẫn toàn cục của agent |
-| `--hooks` | Tuỳ chọn: cài thêm hook nạp lại trạng thái và chặn ghi vào nhánh được bảo vệ, chặn đọc `.env` |
+| `--hooks` | Tuỳ chọn: cài thêm hook nạp lại trạng thái và chặn ghi vào nhánh được bảo vệ của repo mà lệnh nhắm tới, chặn đọc `.env` |
 
 ### Toàn máy hay một dự án
 
