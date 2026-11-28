@@ -2,6 +2,13 @@
 
 Theo định dạng [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) và đánh số theo [SemVer](https://semver.org/spec/v2.0.0.html). Trước 1.0.0, bản MINOR có thể chứa thay đổi phá vỡ và sẽ được ghi rõ ở đây.
 
+## [0.4.2](https://github.com/baodhg/FLOW/compare/v0.4.1...v0.4.2) (2026-11-28)
+
+
+### Bug Fixes
+
+* apply protected branches of the repository a command targets ([abfef3e](https://github.com/baodhg/FLOW/commit/abfef3e895decc5649b884f9cf82ffea1b0c6e1a))
+
 ## [0.4.1](https://github.com/baodhg/FLOW/compare/v0.4.0...v0.4.1) (2026-11-28)
 
 
