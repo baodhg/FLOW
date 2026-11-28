@@ -56,7 +56,7 @@ flow install --agents claude,codex --skills core
 | `--skills a,b` | Only these skills, or `core` for the main workflow. `flow` is always included, and skills you leave out are removed. Default: all |
 | `--dry` | Show what would change without writing anything |
 | `--no-bridge` | Skip the block in the global instruction files |
-| `--hooks` | Optional: add hooks that restore state after context compaction, and block writes to protected branches and direct reads of `.env` files |
+| `--hooks` | Optional: add hooks that restore state after context compaction, and block writes to the protected branches of the repository a command targets and direct reads of `.env` files |
 
 Global instruction files and agent settings are backed up before the first write.
 

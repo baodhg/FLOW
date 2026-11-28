@@ -263,6 +263,28 @@ test('hook blocks reading real env files and writing secrets, only in repos usin
   }
 });
 
+test('hook applies protected branches of the repository the command targets, not of the session', () => {
+  const dir = repo('af-prot-hook-');
+  const other = repo('af-prot-other-');
+  const hook = (command) => sh(dir, process.execPath, [CLI, 'hook', 'pretool'], JSON.stringify({ tool_name: 'Bash', cwd: dir, tool_input: { command } })).status;
+  try {
+    sh(dir, 'git', ['remote', 'add', 'origin', 'https://github.com/team/app.git']);
+    sh(other, 'git', ['remote', 'add', 'origin', 'git@github.com:me/tool.git']);
+    flow(dir, 'init');
+    assert.ok(JSON.parse(fs.readFileSync(path.join(dir, '.flow', 'profile.json'), 'utf8')).branches.protected.includes('main'));
+    assert.equal(hook('gh pr create --base main'), 2);
+    assert.equal(hook('gh pr create --repo team/app --base main'), 2);
+    assert.equal(hook('git push origin main'), 2);
+    assert.equal(hook('gh pr create --repo me/tool --base main'), 0);
+    assert.equal(hook(`cd "${other}" && gh pr create --base main`), 0);
+    assert.equal(hook(`git -C "${other}" push origin main`), 0);
+    assert.equal(hook(`cd "${other}" && cd "${dir}" && git push origin main`), 2);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(other, { recursive: true, force: true });
+  }
+});
+
 test('commit messages and PR descriptions refuse secrets and personal data', () => {
   const dir = repo('af-sec-msg-');
   try {

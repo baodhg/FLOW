@@ -91,6 +91,30 @@ test('protected branch decisions', () => {
   assert.equal(decideBash('gh pr create --base dev', ctx), null);
 });
 
+test('protected branches follow the repository a command actually targets', () => {
+  const scopes = new Map([
+    [path.normalize('.'), { protectedBranches: ['main'], slugs: ['team/app'] }],
+    [path.normalize('../tool'), { protectedBranches: [], slugs: ['me/tool'] }],
+    [path.normalize('../other'), { protectedBranches: ['release'], slugs: ['team/other'] }],
+  ]);
+  const ctx = {
+    scopeOf: (d) => scopes.get(path.normalize(d || '.')) ?? { protectedBranches: [], slugs: [] },
+    currentBranchOf: () => 'feat/a',
+  };
+  assert.ok(decideBash('gh pr create --base main', ctx));
+  assert.ok(decideBash('gh pr create --repo team/app --base main', ctx));
+  assert.ok(decideBash('gh pr create -R https://github.com/Team/App.git --base main', ctx));
+  assert.equal(decideBash('gh pr create --repo me/tool --base main', ctx), null);
+  assert.equal(decideBash('gh pr create --repo=me/tool --base main', ctx), null);
+  assert.equal(decideBash('cd ../tool && gh pr create --base main', ctx), null);
+  assert.equal(decideBash('cd ../tool && git push origin main', ctx), null);
+  assert.equal(decideBash('git -C ../tool push origin main', ctx), null);
+  assert.ok(decideBash('git -C ../other push origin release', ctx));
+  assert.ok(decideBash('cd ../tool && cd ../other && git push origin release', ctx));
+  assert.ok(decideBash('cd ../tool && cd ../app-copy; cd .. && cd . && git push origin main', { ...ctx, scopeOf: () => ({ protectedBranches: ['main'], slugs: null }) }));
+  assert.ok(decideBash('gh pr create --repo me/tool --base main', { ...ctx, scopeOf: () => ({ protectedBranches: ['main'], slugs: null }) }));
+});
+
 function sh(cwd, cmd, args) {
   return spawnSync(cmd, args, { cwd, encoding: 'utf8', windowsHide: true });
 }
