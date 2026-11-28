@@ -74,6 +74,22 @@ test('commit titles must be English, conventional and human-readable; PR descrip
   assert.ok(tech.some((p) => /Quá kỹ thuật/.test(p)));
 });
 
+test('accented Vietnamese PR descriptions pass even when many syllables carry no marks', () => {
+  const accented = [
+    '## Vấn đề',
+    'Tooltip cạnh nhau tự chờ lại độ trễ, giá trị nhảy về giá trị cũ khi thôi bị điều khiển.',
+    '## Thay đổi',
+    '- Rê sang tooltip kế bên thì hiện ngay, không chờ khi đã mở một cái.',
+    '- Thông báo nhanh nằm ngay dưới HUD trên điện thoại.',
+    '- Hai bảng không còn che nhau khi ngồi máy.',
+  ].join('\n');
+  assert.deepEqual(prDescriptionProblems(accented), []);
+  const plain = '## Thay doi\n- Khi khach bo ma giam gia, tong don khong con ve 0.\n- Kiem tra nhanh tren QC.';
+  assert.ok(prDescriptionProblems(plain).some((p) => /KHÔNG DẤU/.test(p)));
+  const mostlyPlain = '## Thay đổi\n- Sua loi khong dang nhap duoc khi nhap sai mat khau nhieu lan.';
+  assert.ok(prDescriptionProblems(mostlyPlain).some((p) => /KHÔNG DẤU/.test(p)));
+});
+
 test('worktree carries local context, finds the main .flow, never deletes through a junction, never overwrites a context both sides edited', () => {
   const { root, dir } = tempRepo('agent-flow-wt-');
   const run = (cwd, ...a) => sh(cwd, process.execPath, [CLI, ...a]);
