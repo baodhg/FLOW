@@ -2,6 +2,13 @@
 
 Theo định dạng [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) và đánh số theo [SemVer](https://semver.org/spec/v2.0.0.html). Trước 1.0.0, bản MINOR có thể chứa thay đổi phá vỡ và sẽ được ghi rõ ở đây.
 
+## [0.4.1](https://github.com/baodhg/FLOW/compare/v0.4.0...v0.4.1) (2026-11-28)
+
+
+### Bug Fixes
+
+* stop flagging accent-free Vietnamese syllables in PR descriptions ([e908459](https://github.com/baodhg/FLOW/commit/e9084592a3428a4329b7aa4a2b5eed16a851376e))
+
 ## [0.4.0](https://github.com/baodhg/FLOW/compare/v0.3.3...v0.4.0) (2026-11-09)
 
 
